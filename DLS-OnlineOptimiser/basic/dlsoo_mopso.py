@@ -660,7 +660,7 @@ class import_algo_final_plot(Tkinter.Frame):
     imported from the final_plot class.
     """
 
-    def __init__(self, parent, pick_handler, axis_labels, signConverter, post_analysis_store_address = None):
+    def __init__(self, parent, pick_handler, axis_labels, signConverter, initial_config=None, post_analysis_store_address = None):
         
         global store_address
         Tkinter.Frame.__init__(self, parent)
@@ -671,11 +671,14 @@ class import_algo_final_plot(Tkinter.Frame):
         self.pick_handler = pick_handler
         self.axis_labels = axis_labels
         
+        if initial_config is not None:
+            self.initial_measurements = initial_config
+        
         if post_analysis_store_address is not None:             #this class is also used for post_analysis
             store_address = post_analysis_store_address
         
 
-    def initUi(self):
+    def initUi(self, initial_config_plot=True):
         """
         Setup window GUI
         """
@@ -691,8 +694,10 @@ class import_algo_final_plot(Tkinter.Frame):
         self.view_mode = Tkinter.StringVar()
         self.view_mode.set('No focus')
         
-        self.plot_frame = final_plot(self, self.axis_labels, self.signConverter)
-
+        if initial_config_plot is True:
+            self.plot_frame = final_plot(self, self.axis_labels, self.signConverter, initial_config=self.initial_measurements)
+        else:
+            self.plot_frame = final_plot(self, self.axis_labels, self.signConverter)
         self.plot_frame.grid(row=0, column=0, pady=20, padx=20, rowspan=1, sticky=Tkinter.N+Tkinter.S+Tkinter.E+Tkinter.W)
 
         Tkinter.Label(self, text="View mode:").grid(row=0, column=1)
@@ -758,17 +763,21 @@ class final_plot(Tkinter.Frame):
     Pareto fronts.
     """
 
-    def __init__(self, parent, axis_labels, signConverter):
+    def __init__(self, parent, axis_labels, signConverter, initial_config=None):
 
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
         self.signConverter = signConverter
         self.axis_labels = axis_labels
+        
+        if initial_config is not None:
+            self.initial_measurements = initial_config         
+            self.initUi(initial_config_plot=True)
+        else:
+            self.initUi()
 
-        self.initUi()
-
-    def initUi(self):
+    def initUi(self, initial_config_plot=False):
         global store_address
         completed_iteration = len(os.listdir('{0}/FRONTS'.format(store_address)))
 
@@ -784,8 +793,26 @@ class final_plot(Tkinter.Frame):
             file_names.append("{0}/FRONTS/fronts.{1}".format(store_address, i))
             
         print 'file names', file_names
+        
+        if initial_config_plot is True:
 
-        plot.plot_pareto_fronts_interactive(file_names, a, self.axis_labels, None, None, self.parent.view_mode.get(), self.signConverter)      #plot fronts
+            plot.plot_pareto_fronts_interactive(file_names, 
+                                                a, 
+                                                self.axis_labels, 
+                                                None, 
+                                                None, 
+                                                self.parent.view_mode.get(), 
+                                                self.signConverter, 
+                                                initial_measurements=self.initial_measurements)  
+        else: 
+            
+            plot.plot_pareto_fronts_interactive(file_names, 
+                                                a, 
+                                                self.axis_labels, 
+                                                None, 
+                                                None, 
+                                                self.parent.view_mode.get(), 
+                                                self.signConverter)   
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)

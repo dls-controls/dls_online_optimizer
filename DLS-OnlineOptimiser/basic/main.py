@@ -150,6 +150,7 @@ optimiserFiles = {'Multi-Objective Particle Swarm Optimiser (MOPSO)': 'dlsoo_mop
 
 keepUpdating = True
 initial_settings = None
+initial_measurements = None
 interactor = None
 optimiser = None
 useMachine = False
@@ -346,7 +347,7 @@ class main_window(Tkinter.Frame):
         add_obj_func_window.deiconify()
 
 
-    #next two functions remove Parameters and objectives from list (if required)
+    #next two functions remove Parameters and Objectives from list (if required)
     def remove_pv(self):
         iid = self.Tinput_params.selection()[0]
         print "REMOVE PV"
@@ -371,7 +372,7 @@ class main_window(Tkinter.Frame):
 
     def next_button(self):
         """
-        loads optimiser file, makes all windows involved with the main window withdraw
+        loads optimiser file, withdraws all windows involved with the main window
         """
         global optimiser_wrapper_address
         global Striptool_On
@@ -837,7 +838,7 @@ class add_obj_func(Tkinter.Frame):
         self.b1.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
         self.b2 = Tkinter.Button(self.parent, text="OK", command=self.add_pv_to_list)
         self.b2.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
-
+             
 
     def add_pv_to_list(self):
         """
@@ -1107,6 +1108,9 @@ class point_details(Tkinter.Frame):
 
         btn_set = Tkinter.Button(self.parent, text="Set", command=self.set_state)
         btn_set.grid(row=3, column=2, sticky=Tkinter.W+Tkinter.E, pady=10)
+        
+        btn_reset = Tkinter.Button(self.parent, text="Reset", command=self.reset_initial_config)
+        btn_reset.grid(row=3, column=1, sticky=Tkinter.W+Tkinter.E, pady=10)
 
         for i, ap in enumerate(aps):
             tree_ap.insert('', 'end', text=parameters[i].ap_label, values=(ap))
@@ -1129,6 +1133,13 @@ class point_details(Tkinter.Frame):
         This allows the user to select a point and then to set the machine to this set of parameters
         """
         interactor.set_mp(self.mps)
+        
+    def reset_initial_config(self):
+        """
+        This allows the user to reconfigure the machine to the original settings
+        """
+        global initial_settings
+        interactor.set_mp(initial_settings)
 
     def x_button(self):
         print "Exited"
@@ -1307,6 +1318,10 @@ def optimiserThreadMethod():
     global results
     global store_address
     global keepUpdating
+    global initial_measurements
+    global initial_settings
+    
+    initial_measurements = interactor.get_mr()
     
     #prepare folder in store_address to save fronts
     if not os.path.exists('{0}/FRONTS'.format(store_address)):
@@ -1352,7 +1367,7 @@ def optimiserThreadMethod():
     
     #show the final plot windows
     ar_labels = [mrr.ar_label for mrr in results]
-    final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window, point_frame.generateUi, ar_labels, signConverter)
+    final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window, point_frame.generateUi, ar_labels, signConverter, initial_config=initial_measurements)
     final_plot_frame.initUi()
     final_plot_window.deiconify()
 

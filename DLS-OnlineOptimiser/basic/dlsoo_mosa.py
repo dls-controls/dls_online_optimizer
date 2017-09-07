@@ -498,8 +498,8 @@ class import_algo_final_plot(Tkinter.Frame):
     This deals with giving the GUI the frame to plot the final front with.
     '''
 
-    def __init__(self, parent, pick_handler, axis_labels, signConverter, post_analysis_store_address = None):
-
+    def __init__(self, parent, pick_handler, axis_labels, signConverter, initial_config=None, post_analysis_store_address = None):
+        
         global store_address
         Tkinter.Frame.__init__(self, parent)
 
@@ -508,13 +508,19 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.pick_handler = pick_handler
         self.axis_labels = axis_labels
-
-        if post_analysis_store_address is not None:
+        
+        if initial_config is not None:
+            self.initial_measurements = initial_config
+        
+        if post_analysis_store_address is not None:             #this class is also used for post_analysis
             store_address = post_analysis_store_address
 
         #self.initUi()
 
-    def initUi(self):
+    def initUi(self, initial_config_plot=True):
+        """
+        Setup window GUI
+        """
         global store_address
 
         self.parent.title("MOSA results")
@@ -526,9 +532,11 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.view_mode = Tkinter.StringVar()
         self.view_mode.set('No focus')
-
-        self.plot_frame = final_plot(self, self.axis_labels, self.signConverter)
-
+        
+        if initial_config_plot is True:
+            self.plot_frame = final_plot(self, self.axis_labels, self.signConverter, initial_config=self.initial_measurements)
+        else:
+            self.plot_frame = final_plot(self, self.axis_labels, self.signConverter)
         self.plot_frame.grid(row=0, column=0, pady=20, padx=20, rowspan=1, sticky=Tkinter.N+Tkinter.S+Tkinter.E+Tkinter.W)
 
         Tkinter.Label(self, text="View mode:").grid(row=0, column=1)
@@ -542,10 +550,13 @@ class import_algo_final_plot(Tkinter.Frame):
         self.parent.rowconfigure(0, weight=1)
 
     def on_pick(self, event):
-
+        """
+        This function gathers information from the saved files to allow the user to see the machine/algorithm parameters/results upon clicking
+        on a solution on the Pareo front.
+        """
         global store_address
         completed_generation = len(os.listdir('{0}/FRONTS'.format(store_address)))
-        # Lookup ap values
+
         my_artist = event.artist
         x_data = my_artist.get_xdata()
         y_data = my_artist.get_ydata()
@@ -557,7 +568,6 @@ class import_algo_final_plot(Tkinter.Frame):
         ''' By this point we have the ars, but not the aps. We get these next. '''
 
         file_names = []
-        #for i in range(algo_settings_dict['max_gen'])
         for i in range(completed_generation):
             file_names.append("{0}/FRONTS/fronts.{1}".format(store_address, i+1))
 
@@ -586,10 +596,6 @@ class import_algo_final_plot(Tkinter.Frame):
 
 
 
-        #self.pick_handler()
-
-
-
 
 
 class final_plot(Tkinter.Frame):
@@ -598,17 +604,21 @@ class final_plot(Tkinter.Frame):
     This actually plots the final front for the algorithm at the end of running. 
     '''
 
-    def __init__(self, parent, axis_labels, signConverter):
+    def __init__(self, parent, axis_labels, signConverter, initial_config=None):
 
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
         self.signConverter = signConverter
         self.axis_labels = axis_labels
+        
+        if initial_config is not None:
+            self.initial_measurements = initial_config         
+            self.initUi(initial_config_plot=True)
+        else:
+            self.initUi()
 
-        self.initUi()
-
-    def initUi(self):
+    def initUi(self, initial_config_plot=False):
         global store_address
         completed_generation = len(os.listdir('{0}/FRONTS'.format(store_address)))
 
@@ -618,16 +628,32 @@ class final_plot(Tkinter.Frame):
         fig = Figure(figsize=(5, 5), dpi=100)
         a = fig.add_subplot(111)
         fig.subplots_adjust(left=0.15)
-        #a.plot(range(10), [i**2 for i in range(10)])
 
         file_names = []
-        #for i in range(algo_settings_dict['max_gen']):
-        for i in range(completed_generation):
+        for i in range(completed_generation):                                            #gather fronts
             file_names.append("{0}/FRONTS/fronts.{1}".format(store_address, i+1))
-
+            
         print 'file names', file_names
+        
+        if initial_config_plot is True:
 
-        plot.plot_pareto_fronts_interactive(file_names, a, self.axis_labels, None, None, self.parent.view_mode.get(), self.signConverter)
+            plot.plot_pareto_fronts_interactive(file_names, 
+                                                a, 
+                                                self.axis_labels, 
+                                                None, 
+                                                None, 
+                                                self.parent.view_mode.get(), 
+                                                self.signConverter, 
+                                                initial_measurements=self.initial_measurements)  
+        else: 
+            
+            plot.plot_pareto_fronts_interactive(file_names, 
+                                                a, 
+                                                self.axis_labels, 
+                                                None, 
+                                                None, 
+                                                self.parent.view_mode.get(), 
+                                                self.signConverter)   
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)

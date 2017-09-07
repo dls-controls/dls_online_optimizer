@@ -598,7 +598,7 @@ class import_algo_final_plot(Tkinter.Frame):
     Provides the frame for the final plot.
     '''
 
-    def __init__(self, parent, pick_handler, axis_labels, signConverter, post_analysis_store_address=None):
+    def __init__(self, parent, pick_handler, axis_labels, signConverter, post_analysis_store_address=None,initial_config=None):
         global store_address
         Tkinter.Frame.__init__(self, parent)
 
@@ -610,10 +610,10 @@ class import_algo_final_plot(Tkinter.Frame):
         if post_analysis_store_address is not None:
             store_address = post_analysis_store_address
 
-    def initUi(self):
+    def initUi(self, initial_config_plot=False):
         global store_address
 
-        self.parent.title("MOSA results")
+        self.parent.title("RCDS results")
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
