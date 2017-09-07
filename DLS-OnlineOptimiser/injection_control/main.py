@@ -1214,6 +1214,9 @@ class point_details(Tkinter.Frame):
 
         btn_set = Tkinter.Button(self.parent, text="Set", command=self.set_state)
         btn_set.grid(row=3, column=2, sticky=Tkinter.W+Tkinter.E, pady=10)
+        
+        btn_reset = Tkinter.Button(self.parent, text="Reset", command=self.reset_initial_config)
+        btn_reset.grid(row=3, column=1, sticky=Tkinter.W+Tkinter.E, pady=10)
 
         for i, ap in enumerate(aps):
             tree_ap.insert('', 'end', text=parameters[i].ap_label, values=(ap))
@@ -1235,6 +1238,13 @@ class point_details(Tkinter.Frame):
         This allows the user to select a point and then to set the machine to this set of parameters
         """
         interactor.set_mp(self.mps)
+        
+    def reset_initial_config(self):
+        """
+        This allows the user to reconfigure the machine to the original settings
+        """
+        global initial_settings
+        interactor.set_mp(initial_settings)
 
     def x_button(self):
         print "Exited"
@@ -1340,7 +1350,7 @@ class algorithm_settings(Tkinter.Frame):
                 interactor = modified_interactor(mp_addresses, mr_addresses_noinj, mr_addresses_inj, set_relative=relative_settings)
                 
                 #save the interactor object to file (used in post_analysis file)
-                save_object(interactor, '{0}/interactor'.format(store_address))
+                save_object(interactor, '{0}/interactor.txt'.format(store_address))
                 
                 #find out initial settings
                 initial_mp = interactor.get_mp()
@@ -1422,6 +1432,10 @@ def optimiserThreadMethod():
     global results
     global store_address
     global keepUpdating
+    global initial_measurements
+    global initial_settings
+    
+    initial_measurements = interactor.get_mr()
     
     #prepare folder in store_address to save fronts
     if not os.path.exists('{0}/FRONTS'.format(store_address)):
@@ -1467,7 +1481,7 @@ def optimiserThreadMethod():
     
     #show the final plot windows
     ar_labels = [mrr.ar_label for mrr in results]
-    final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window, point_frame.generateUi, ar_labels, signConverter)
+    final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window, point_frame.generateUi, ar_labels, signConverter, initial_config=initial_measurements)
     final_plot_frame.initUi()
     final_plot_window.deiconify()    
 

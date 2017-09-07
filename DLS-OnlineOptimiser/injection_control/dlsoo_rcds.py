@@ -470,7 +470,8 @@ class import_algo_prog_plot(Tkinter.Frame):
 
 class import_algo_final_plot(Tkinter.Frame):
 
-    def __init__(self, parent, pick_handler, axis_labels, signConverter):
+    def __init__(self, parent, pick_handler, axis_labels, signConverter, post_analysis_store_address = None):
+        global store_address
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
@@ -478,6 +479,9 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.pick_handler = pick_handler
         self.axis_labels = ['Number of directions searched', axis_labels[0]]
+        
+        if post_analysis_store_address is not None:
+            store_address = post_analysis_store_address
         #self.initUi()
 
     def initUi(self):

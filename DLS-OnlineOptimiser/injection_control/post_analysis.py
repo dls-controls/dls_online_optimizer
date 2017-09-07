@@ -212,6 +212,7 @@ class main_window(Tkinter.Frame):
         global parameters
         global results
         global interactor
+        global signConverter
         
         #load parameters
         for filename in os.listdir('{0}/PARAMETERS'.format(store_address)):
@@ -238,7 +239,7 @@ class main_window(Tkinter.Frame):
         
         #load and show the final plot from the optimisation
         final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window, point_frame.generateUi, ar_labels, signConverter, post_analysis_store_address = store_address)
-        final_plot_frame.initUi()
+        final_plot_frame.initUi(initial_config_plot=False)
         final_plot_window.deiconify()
         
 #------------------------------------------------------ SOLUTION SELECTION ---------------------------------------------------------#

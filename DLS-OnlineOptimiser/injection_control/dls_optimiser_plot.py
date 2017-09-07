@@ -1,5 +1,5 @@
 """
-Plotting package for use in main.py and algorithm files within INJECTION CONTROL directory
+Plotting package for use in main.py and algorithm files within BASIC directory
 
 Created on 19 Jul 2017
 
@@ -119,7 +119,8 @@ def plot_pareto_fronts(file_names, ax, axis_labels, signConverter):
 
         x_vals = []
         y_vals = []
-
+        
+    ax.grid()
     ax.set_xlabel(axis_labels[0])
     ax.set_ylabel(axis_labels[1])
 
@@ -128,13 +129,15 @@ def plot_pareto_fronts(file_names, ax, axis_labels, signConverter):
 
 
 
-def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, callback, view_mode, signConverter):
+def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, callback, view_mode, signConverter, initial_measurements=None):
     """
     This is used in the final results plot
     """
     global fs
 
-
+    if initial_measurements is not None:
+        initial_config = [i.mean for i in initial_measurements]
+    
     fs = []
     
     #execute all FRONTS files to obtain the pareto fronts.
@@ -188,10 +191,16 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
 
                 new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
                 ax.plot(new_x, new_y, color=colors[nf], linestyle='--')
+                
 
             x_vals = []
             y_vals = []
-
+        
+        if initial_measurements is not None:  
+            # now plot the initial config
+            ax.plot(initial_config[0], initial_config[1], marker='o', markersize=10)
+        ax.grid()
+    
     #a different view mode using the same method but with different colours
     elif view_mode == "Best focus":
 
@@ -232,7 +241,11 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
 
             x_vals = []
             y_vals = []
-
+            
+        if initial_measurements is not None:  
+            # now plot the initial config
+            ax.plot(initial_config[0], initial_config[1], marker='o', markersize=10)
+        ax.grid()
 
     ax.set_xlabel(axis_labels[0])
     ax.set_ylabel(axis_labels[1])

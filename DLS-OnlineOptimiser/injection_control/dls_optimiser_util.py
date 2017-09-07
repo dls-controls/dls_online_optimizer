@@ -372,7 +372,7 @@ class dls_machine_interactor_bulk_base_inj_control:
         caput('LI-TI-MTGEN-01:START', 1)
         cothread.Sleep(0.1)
         caput('LI-TI-MTGEN-01:START', 0)
-        cothread.Sleep(1)
+        cothread.Sleep(4.0)
         
         beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
         while beam_current < beam_current_bounds[0]:
