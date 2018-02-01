@@ -13,6 +13,24 @@ import cothread
 from . import config, plot, util, usefulFunctions
 
 
+def save_details_files(start_time, end_time, store_address, optimiser,
+        interactor):
+    """
+    saves details of optimisation in txt file using functions in the algorithm file and in dls_optimiser_util.py
+    """
+    f = file("{0}/algo_details.txt".format(store_address), "w")
+    f.write(optimiser.save_details_file())
+
+    f = file("{0}/inter_details.txt".format(store_address), "w")
+    f.write(interactor.save_details_file())
+
+    f = file("{0}/controller_details.txt".format(store_address), "w")
+    f.write("Controller\n")
+    f.write("==========\n\n")
+
+    f.write("Start time: {0}-{1}-{2} {3}:{4}:{5}\n".format(start_time.year, start_time.month, start_time.day, start_time.hour, start_time.minute, start_time.second))
+    f.write("End time: {0}-{1}-{2} {3}:{4}:{5}\n".format(end_time.year, end_time.month, end_time.day, end_time.hour, end_time.minute, end_time.second))
+
 #The two classes below are for simulated interaction and machine interaction respectively.
 
 class modified_interactor1(util.sim_machine_interactor_bulk_base):
@@ -23,7 +41,7 @@ class modified_interactor1(util.sim_machine_interactor_bulk_base):
         #converts a set of machine results to algorithm results
         ars = []
 
-        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in results]
+        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in self.results]
         for mr, sign in zip(mrs, mr_to_ar_sign):
             if sign == '+':
                 ars.append(mr)
@@ -40,7 +58,7 @@ class modified_interactor2(util.dls_machine_interactor_bulk_base):
         #converts a set of machine results to algorithm results
         ars = []
 
-        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in results]
+        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in self.results]
         for mr, sign in zip(mrs, mr_to_ar_sign):
             if sign == '+':
                 ars.append(mr)
@@ -74,7 +92,6 @@ class Gui(object):
     def start(self):
         self.root.mainloop()
         cothread.WaitForQuit()
-
 
 class InteractorSelector(Tkinter.Frame):
     """
@@ -146,15 +163,21 @@ class MainWindow(Tkinter.Frame):
                 self.parameters.results)
         self.add_obj_func_window.withdraw()
 
-        # The dialog for changing algorithm settings
-        self.algorithm_settings_window = Tkinter.Toplevel(self.parent)
-        self.algorithm_settings_frame = AlgorithmSettings(self.algorithm_settings_window, self.parameters)
-        self.algorithm_settings_window.withdraw()
-
         # The dialog showing calculation progress
         self.progress_window = Tkinter.Toplevel(self.parent)
-        self.progress_frame = ShowProgress(self.progress_window)
+        self.progress_frame = ShowProgress(self.progress_window,
+                self.parameters)
         self.progress_window.withdraw()
+
+        # The dialog for changing algorithm settings
+        self.algorithm_settings_window = Tkinter.Toplevel(self.parent)
+        self.algorithm_settings_frame = AlgorithmSettings(
+                self.algorithm_settings_window,
+                self,
+                self.parameters,
+                self.progress_frame)
+        self.algorithm_settings_window.withdraw()
+
 
         # The dialogs for showing the final results
         self.point_window = Tkinter.Toplevel(self.parent)
@@ -246,6 +269,85 @@ class MainWindow(Tkinter.Frame):
         self.btn_load_config.grid(row=8, column=0, sticky=Tkinter.E+Tkinter.W)
         self.btn_save_config = Tkinter.Button(self.parent, text="Save configuration", command=self.save_config)
         self.btn_save_config.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
+
+    def run_optimisation(self):
+        """
+        initialises progress windows and calls on the the optimisation to begin susing function below
+        """
+        global final_plot_frame
+        print "Lets go!"
+
+        self.progress_frame.initUi()
+        self.algorithm_settings_window.withdraw()
+
+        self.parameters.initial_settings = self.parameters.interactor.get_mp()
+
+        self.progress_window.deiconify()
+        self.progress_window.grab_set()
+        cothread.Spawn(self.optimiserThreadMethod)
+
+
+    def optimiserThreadMethod(self):
+        global final_plot_frame
+        
+        self.parameters.initial_measurements = self.parameters.interactor.get_mr()
+        
+        #prepare folder in store_address to save fronts
+        if not os.path.exists('{0}/FRONTS'.format(self.parameters.store_address)):
+            os.makedirs('{0}/FRONTS'.format(self.parameters.store_address))
+            
+        ###NOW ACTUALLY CALL THE OPTIMISE FUNCTION WITHIN THE ALGORITHM FILE###   
+        start_time = time.time()   #START
+        self.parameters.optimiser.optimise()       #OPTIMISING...
+        self.parameters.keepUpdating = False       
+        end_time = time.time()     #STOP 
+
+        #now save details for later reference by various code (results plotting, post_analysis etc..)
+        self.parameters.interactor.set_mp(self.parameters.initial_settings)
+        save_details_files(datetime.datetime.fromtimestamp(start_time),
+                datetime.datetime.fromtimestamp(end_time),
+                self.parameters.store_address,
+                self.parameters.optimiser,
+                self.parameters.interactor)
+        
+        if not os.path.exists('{0}/PARAMETERS'.format(self.parameters.store_address)):
+            os.makedirs('{0}/PARAMETERS'.format(self.parameters.store_address))
+            
+        if not os.path.exists('{0}/RESULTS'.format(self.parameters.store_address)):
+            os.makedirs('{0}/RESULTS'.format(self.parameters.store_address))
+        
+        #save parameters and objectives as Pickle objects
+        for i in range(len(self.parameters.parameters)):
+            usefulFunctions.save_object(self.parameters.parameters[i],
+                    '{0}/PARAMETERS/parameter_{1}'.format(self.parameters.store_address, i))
+        for i in range(len(self.parameters.results)):
+            usefulFunctions.save_object(self.parameters.results[i],
+                    '{0}/RESULTS/result_{1}'.format(self.parameters.store_address, i))
+        
+        #save signconverter 
+        signConverter_file = open("{0}/signConverter.txt".format(self.parameters.store_address), 'w')
+        signConverter_file.write(str(self.parameters.signConverter))
+        signConverter_file.close()
+        
+        #save the mapping method between algorithm parameters to machine parameters
+        ap_to_mp_mapping_file = open("{0}/ap_to_mp_mapping_file.txt".format(self.parameters.store_address), 'w')
+        ap_to_mp_mapping_file.write(self.parameters.interactor.string_ap_to_mp_store())
+        ap_to_mp_mapping_file.close()
+
+        #By this point, the algorithm has finished the optimisation, and restored the machine
+
+        #close progress window
+        self.progress_window.grab_release()
+        self.progress_window.withdraw()
+        
+        #show the final plot windows
+        ar_labels = [mrr.ar_label for mrr in self.parameters.results]
+        final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window,
+                point_frame.generateUi, ar_labels, self.parameters.signConverter,
+                initial_config=self.parameters.initial_measurements)
+        final_plot_frame.initUi()
+        final_plot_window.deiconify()
+
 
     def browse_save_location(self):
         """
@@ -456,14 +558,14 @@ class PointDetails(Tkinter.Frame):
         """
         This allows the user to select a point and then to set the machine to this set of parameters
         """
-        interactor.set_mp(self.mps)
+        self.parameters.interactor.set_mp(self.mps)
         
     def reset_initial_config(self):
         """
         This allows the user to reconfigure the machine to the original settings
         """
         global initial_settings
-        interactor.set_mp(initial_settings)
+        self.parameters.interactor.set_mp(initial_settings)
 
     def x_button(self):
         print "Exited"
@@ -476,12 +578,14 @@ class AlgorithmSettings(Tkinter.Frame):
     optimisation is started. Once this begins, all windows associated with the main window disappear.
     """
 
-    def __init__(self, parent, parameters):
+    def __init__(self, parent, main_window, parameters, progress_frame):
 
-        Tkinter.Frame.__init__(self, parent)
+        Tkinter.Frame.__init__(self, parent, progress_frame)
 
         self.parent = parent
+        self.main_window = main_window
         self.parameters = parameters
+        self.progress_frame = progress_frame
 
     def initUi(self):
         """
@@ -555,29 +659,30 @@ class AlgorithmSettings(Tkinter.Frame):
                         
                 #define the appropriate interactor depending on using machine or simulator
                 if useMachine:
-                    interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
+                    self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
                 else:
-                    interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
+                    self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
                 
+                self.parameters.interactor.results = self.parameters.results
                 #save the interactor object to file (used in post_analysis file)
-                usefulFunctions.save_object(interactor,
+                usefulFunctions.save_object(self.parameters.interactor,
                         '{0}/interactor.txt'.format(self.parameters.store_address))
                 
                 #find out initial settings
-                initial_mp = interactor.get_mp()
+                initial_mp = self.parameters.interactor.get_mp()
                 
                 #initialise optimiser class in the algorithm file using settings dictionary among other arguments
-                optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
-                                                        interactor=interactor,
+                self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
+                                                        interactor=self.parameters.interactor,
                                                         store_location=self.parameters.store_address,
                                                         a_min_var=ap_min_var,
                                                         a_max_var=ap_max_var,
-                                                        progress_handler=progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
+                                                        progress_handler=self.progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
 
                 #withdraw all windows associated with the main window
                 self.parent.withdraw()
                 #NOW RUN THE OPTIMISATION (using function below)
-                run_optimisation()
+                self.main_window.run_optimisation()
 
 
 class AddPv(Tkinter.Frame):
@@ -934,8 +1039,9 @@ class StripPlot(Tkinter.Frame):
 
     def __init__(self, parent):
 
-        Tkinter.Frame.__init__(self, parent)
+        Tkinter.Frame.__init__(self, parent, progress_frame)
         self.parent = parent
+        self.progress_frame = progress_frame
         self.initUi()
 
     def initUi(self):
@@ -981,11 +1087,14 @@ class ShowProgress(Tkinter.Frame):
     measurement and then pause whilst the Cancel button will stop will complete the current measurement and then finish the optimisation.
     A striptool option can also be added but it is turned off by default (this can be changed in the main window GUI).
     """
-    def __init__(self, parent):
+    def __init__(self, parent, parameters):
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
-
+        self.parameters = parameters
+        #variables for progress percentage 
+        self.progress = Tkinter.DoubleVar()
+        self.progress.set(0.00)
 
     def initUi(self):
         """
@@ -1005,7 +1114,8 @@ class ShowProgress(Tkinter.Frame):
         self.columnconfigure(2, weight=1)
         self.columnconfigure(3, weight=1)
 
-        self.pbar_progress = ttk.Progressbar(self.parent, length=400, variable=progress)
+        self.pbar_progress = ttk.Progressbar(self.parent, length=400,
+                variable=self.progress)
         self.pbar_progress.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
         
         #optional striptool feature (recommended to the user to be turned off (==0)
@@ -1024,7 +1134,11 @@ class ShowProgress(Tkinter.Frame):
         # This part will display the latest plot
         ar_labels = [mrr.ar_label for mrr in self.parameters.results]
         #import_algo_prog_plot class from chosen algorithm
-        self.progress_plot = optimiser_wrapper.import_algo_prog_plot(self.parent, ar_labels, signConverter)
+        self.progress_plot = optimiser_wrapper.import_algo_prog_plot(
+                self.parent,
+                ar_labels,
+                self.parameters.signConverter
+                )
         self.progress_plot.grid(row=3, column=0, columnspan=4)
         print "INIT: Progress window"
 
@@ -1034,8 +1148,8 @@ class ShowProgress(Tkinter.Frame):
         """
         global Striptool_On
 
-        progress.set(normalised_percentage * 100)
-        progress_frame.update()
+        self.progress.set(normalised_percentage * 100)
+        self.update()
 
         if Striptool_On == 1:
             self.strip_plot.update()
@@ -1048,10 +1162,9 @@ class ShowProgress(Tkinter.Frame):
         This method pauses the algorithm
         """
         print "Pausing"
-        global optimiser
-        optimiser.pause = not optimiser.pause
+        self.parameters.optimiser.pause = not self.parameters.optimiser.pause
 
-        if optimiser.pause:
+        if self.parameters.optimiser.pause:
             self.btn_pause.config(text="Unpause")
             self.parent.config(background="red")
         else:
@@ -1062,7 +1175,7 @@ class ShowProgress(Tkinter.Frame):
         """
         This method cancels the algorithm
         """
-        optimiser.cancel = True
+        self.parameters.optimiser.cancel = True
 
 
 class PlotProgress(Tkinter.Frame):
