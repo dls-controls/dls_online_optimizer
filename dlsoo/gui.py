@@ -342,11 +342,11 @@ class MainWindow(Tkinter.Frame):
         
         #show the final plot windows
         ar_labels = [mrr.ar_label for mrr in self.parameters.results]
-        final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window,
-                point_frame.generateUi, ar_labels, self.parameters.signConverter,
+        final_plot_frame = optimiser_wrapper.import_algo_final_plot(self.final_plot_window,
+                self.point_frame.generateUi, ar_labels, self.parameters.signConverter,
                 initial_config=self.parameters.initial_measurements)
         final_plot_frame.initUi()
-        final_plot_window.deiconify()
+        self.final_plot_window.deiconify()
 
 
     def browse_save_location(self):

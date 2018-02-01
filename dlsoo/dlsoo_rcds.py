@@ -1,9 +1,5 @@
 #RCDS optimiser
 from __future__ import division
-#import pkg_resources
-#pkg_resources.require('numpy')
-#pkg_resources.require('scipy')
-#pkg_resources.require('matplotlib')
 import numpy
 import math
 import time
@@ -12,13 +8,13 @@ import os
 import random
 import scipy
 import scipy.stats as stats
-from usefulFunctions import *
+from dlsoo.usefulFunctions import *
+from dlsoo import plot
 
 import Tkinter
 import ttk
 import tkMessageBox
 
-from . import plot
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
