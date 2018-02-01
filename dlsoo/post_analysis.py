@@ -34,8 +34,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
 
-import .util
-import .plot
+from . import plot, util
 
 store_address = None
 algorithm_name = ""
@@ -352,19 +351,20 @@ class point_details(Tkinter.Frame):
     
     
     
-#setup main window
-root = Tkinter.Tk()
-root.title("DLS Post Optimisation Analysis")
-the_main_window = main_window(root)
+if __name__ == '__main__':
+    #setup main window
+    root = Tkinter.Tk()
+    root.title("DLS Post Optimisation Analysis")
+    the_main_window = main_window(root)
 
-#setup final plot window
-final_plot_window = Tkinter.Toplevel(root)
-final_plot_window.withdraw()
+    #setup final plot window
+    final_plot_window = Tkinter.Toplevel(root)
+    final_plot_window.withdraw()
 
-#setup solution selection window
-point_window = Tkinter.Toplevel(root)
-point_frame = point_details(point_window)
-point_window.withdraw()
+    #setup solution selection window
+    point_window = Tkinter.Toplevel(root)
+    point_frame = point_details(point_window)
+    point_window.withdraw()
 
 
-root.mainloop()
+    root.mainloop()

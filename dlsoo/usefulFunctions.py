@@ -1,6 +1,8 @@
 #Some helpful functions for MYSA
 
 from __future__ import division
+import pickle
+
 
 def extractColumn(matrix, colnum):
     col = []
@@ -26,3 +28,9 @@ def extractNumbers(string1):
         elif collect:
             collector += i
     return numbers
+
+
+def save_object(obj, filename):
+    with open(filename, 'wb') as output:
+        pickle.dump(obj, output)
+

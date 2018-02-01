@@ -2,8 +2,8 @@
 S'results'
 p1
 (lp2
-(i__main__
-mr_representation
+(idlsoo.config
+MrRepresentation
 p3
 (dp4
 S'mr_obj'
@@ -45,8 +45,8 @@ sS'ar_label'
 p21
 S'kur1'
 p22
-sba(i__main__
-mr_representation
+sba(idlsoo.config
+MrRepresentation
 p23
 (dp24
 g5
@@ -79,8 +79,8 @@ p30
 sbasS'parameters'
 p31
 (lp32
-(i__main__
-mp_group_representation
+(idlsoo.config
+MpGroupRepresentation
 p33
 (dp34
 S'relative_setting'
@@ -96,8 +96,8 @@ p38
 sS'mp_representations'
 p39
 (lp40
-(i__main__
-mp_representation
+(idlsoo.config
+MpRepresentation
 p41
 (dp42
 g19
@@ -123,8 +123,8 @@ p49
 F-4.0
 sg19
 g43
-sba(i__main__
-mp_group_representation
+sba(idlsoo.config
+MpGroupRepresentation
 p50
 (dp51
 g35
@@ -136,8 +136,8 @@ S'b'
 p52
 sg39
 (lp53
-(i__main__
-mp_representation
+(idlsoo.config
+MpRepresentation
 p54
 (dp55
 g19
@@ -159,8 +159,8 @@ sbsbasg49
 F-4.0
 sg19
 g56
-sba(i__main__
-mp_group_representation
+sba(idlsoo.config
+MpGroupRepresentation
 p59
 (dp60
 g35
@@ -172,8 +172,8 @@ S'c'
 p61
 sg39
 (lp62
-(i__main__
-mp_representation
+(idlsoo.config
+MpRepresentation
 p63
 (dp64
 g19

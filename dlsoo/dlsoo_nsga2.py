@@ -4,7 +4,6 @@ Version 3
 2016-08-01 15:00
 
 '''
-#!/bin/env dls-python
 "fast non-dominated sorting genetic algorithm II"
 
 import random, sys
@@ -15,7 +14,7 @@ import Tkinter
 import ttk
 import tkMessageBox
 
-import dls_optimiser_plot as plot
+from dlsoo import plot
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg

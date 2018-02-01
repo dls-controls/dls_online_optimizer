@@ -15,7 +15,7 @@ import ttk
 import tkMessageBox
 
 from scipy import spatial
-import .plot
+from dlsoo import plot
 
 import matplotlib
 matplotlib.use("TkAgg")

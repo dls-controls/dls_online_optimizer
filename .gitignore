@@ -1,1 +1,6 @@
+# Vim temporary files
+*.swp
+*.swo
+
+# Compiled Python
 *.pyc
