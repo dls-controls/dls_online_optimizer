@@ -22,7 +22,7 @@ def extractNumbers(string1):
         if i == ':':
             collect = True
         elif i == ';':
-            collect = False 
+            collect = False
             numbers.append(float(collector))
             collector = ''
         elif collect:

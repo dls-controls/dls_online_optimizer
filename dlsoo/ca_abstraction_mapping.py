@@ -24,11 +24,11 @@ def bunch_length(I_beam):
 
 
 def lifetime_proxy():
-    
+
     PMT_count = caget('SR-DI-COUNT-01:MEAN')+0.001
     I_beam = caget('SR-DI-DCCT-01:SIGNAL')
     epsilon_y = caget('SR-DI-EMIT-01:VEMIT_MEAN')
-    
+
     bunch_length_value = bunch_length(I_beam)
     #print 'PMT ',PMT_count
     #print 'I_beam', I_beam
@@ -36,9 +36,9 @@ def lifetime_proxy():
     #print 'bunch_length', bunch_length_value
 
     objective = I_beam/(PMT_count*bunch_length_value*math.sqrt(epsilon_y))
-    
+
     return objective
-    
+
 
 name_to_function_mapping = {"lifetime_proxy" : lifetime_proxy}
 

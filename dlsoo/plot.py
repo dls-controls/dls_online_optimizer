@@ -23,7 +23,7 @@ import matplotlib.patches as pat
 def virtual_pareto_points(x_pareto, y_pareto, signConverter):
     """
     The plotting needs to correctly show the correct dominated region. This is done by creating artificial points:
-    
+
           ///////////
     y1 |  x-----o ///
        |        | ///
@@ -32,15 +32,15 @@ def virtual_pareto_points(x_pareto, y_pareto, signConverter):
        |
         ----------->
           x1    x2
-         
+
     for points on pareto front (x1,y1) and (x2,y2), an artificial point is put at (x2,y1). This will change however
     if objectives are being minimised/maximised (this is why signconverter is used).
     """
-    
+
     if signConverter == [1,1] or signConverter == [1,-1]:
 
         coords = zip(x_pareto,y_pareto)
-        
+
         coords.sort(key=operator.itemgetter(0))
 
         new_coords = []
@@ -119,7 +119,7 @@ def plot_pareto_fronts(file_names, ax, axis_labels, signConverter):
 
         x_vals = []
         y_vals = []
-    
+
     ax.grid()
     ax.set_xlabel(axis_labels[0])
     ax.set_ylabel(axis_labels[1])
@@ -137,9 +137,9 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
 
     if initial_measurements is not None:
         initial_config = [i.mean for i in initial_measurements]
-    
+
     fs = []
-    
+
     #execute all FRONTS files to obtain the pareto fronts.
     for file_name in file_names:
         execfile(file_name)
@@ -149,9 +149,9 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
 
     x_vals = []
     y_vals = []
-    
+
     #different view modes for the final plot
-    
+
     if view_mode == "No focus":
 
         colors = cm.jet(numpy.linspace(0, 1, len(fs)))
@@ -159,11 +159,11 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
         for nf, f in enumerate(fs):
 
             for ni, i in enumerate(f):
-                
+
                 #take into account the change of sign for max/min
                 x_vals.append(i[1][0]*signConverter[0])
                 y_vals.append(i[1][1]*signConverter[1])
-                
+
                 #add error ellipses
                 x_err = i[2][0]
                 y_err = i[2][1]
@@ -184,23 +184,23 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
 
                 new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
                 ax.plot(new_x, new_y, color=colors[nf], linewidth=2)
-            
+
             #Plot the past fronts normally
             else:
                 ax.plot(px_vals, py_vals, color=colors[nf], marker='.', linestyle='None')
 
                 new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
                 ax.plot(new_x, new_y, color=colors[nf], linestyle='--')
-                
+
 
             x_vals = []
             y_vals = []
-        
-        if initial_measurements is not None:  
+
+        if initial_measurements is not None:
             # now plot the initial config
             ax.plot(initial_config[0], initial_config[1], marker='o', markersize=10)
         ax.grid()
-    
+
     #a different view mode using the same method but with different colours
     elif view_mode == "Best focus":
 
@@ -241,8 +241,8 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
 
             x_vals = []
             y_vals = []
-            
-        if initial_measurements is not None:  
+
+        if initial_measurements is not None:
             # now plot the initial config
             ax.plot(initial_config[0], initial_config[1], marker='o', markersize=10)
         ax.grid()

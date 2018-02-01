@@ -29,10 +29,10 @@ def caput(pv, value):
 
 def caget(pv):
     my_return = 0
-    
+
     if pv == "d":
         my_return = kur(mach_state)[0]
     elif (pv == "e"):
         my_return = kur(mach_state)[1]
-    
+
     return my_return

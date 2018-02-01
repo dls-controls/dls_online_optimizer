@@ -495,7 +495,7 @@ class import_algo_final_plot(Tkinter.Frame):
     '''
 
     def __init__(self, parent, pick_handler, axis_labels, signConverter, initial_config=None, post_analysis_store_address = None):
-        
+
         global store_address
         Tkinter.Frame.__init__(self, parent)
 
@@ -504,10 +504,10 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.pick_handler = pick_handler
         self.axis_labels = axis_labels
-        
+
         if initial_config is not None:
             self.initial_measurements = initial_config
-        
+
         if post_analysis_store_address is not None:             #this class is also used for post_analysis
             store_address = post_analysis_store_address
 
@@ -528,7 +528,7 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.view_mode = Tkinter.StringVar()
         self.view_mode.set('No focus')
-        
+
         if initial_config_plot is True:
             self.plot_frame = final_plot(self, self.axis_labels, self.signConverter, initial_config=self.initial_measurements)
         else:
@@ -597,7 +597,7 @@ class import_algo_final_plot(Tkinter.Frame):
 class final_plot(Tkinter.Frame):
 
     '''
-    This actually plots the final front for the algorithm at the end of running. 
+    This actually plots the final front for the algorithm at the end of running.
     '''
 
     def __init__(self, parent, axis_labels, signConverter, initial_config=None):
@@ -607,9 +607,9 @@ class final_plot(Tkinter.Frame):
         self.parent = parent
         self.signConverter = signConverter
         self.axis_labels = axis_labels
-        
+
         if initial_config is not None:
-            self.initial_measurements = initial_config         
+            self.initial_measurements = initial_config
             self.initUi(initial_config_plot=True)
         else:
             self.initUi()
@@ -628,28 +628,28 @@ class final_plot(Tkinter.Frame):
         file_names = []
         for i in range(completed_generation):                                            #gather fronts
             file_names.append("{0}/FRONTS/fronts.{1}".format(store_address, i+1))
-            
+
         print 'file names', file_names
-        
+
         if initial_config_plot is True:
 
-            plot.plot_pareto_fronts_interactive(file_names, 
-                                                a, 
-                                                self.axis_labels, 
-                                                None, 
-                                                None, 
-                                                self.parent.view_mode.get(), 
-                                                self.signConverter, 
-                                                initial_measurements=self.initial_measurements)  
-        else: 
-            
-            plot.plot_pareto_fronts_interactive(file_names, 
-                                                a, 
-                                                self.axis_labels, 
-                                                None, 
-                                                None, 
-                                                self.parent.view_mode.get(), 
-                                                self.signConverter)   
+            plot.plot_pareto_fronts_interactive(file_names,
+                                                a,
+                                                self.axis_labels,
+                                                None,
+                                                None,
+                                                self.parent.view_mode.get(),
+                                                self.signConverter,
+                                                initial_measurements=self.initial_measurements)
+        else:
+
+            plot.plot_pareto_fronts_interactive(file_names,
+                                                a,
+                                                self.axis_labels,
+                                                None,
+                                                None,
+                                                self.parent.view_mode.get(),
+                                                self.signConverter)
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)

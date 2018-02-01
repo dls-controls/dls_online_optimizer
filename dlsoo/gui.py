@@ -187,7 +187,7 @@ class MainWindow(Tkinter.Frame):
         # dialog for final plot
         self.final_plot_window = Tkinter.Toplevel(self.parent)
         self.final_plot_window.withdraw()
-        
+
         self.parent.title("DLS Machine Optimiser")
 
         self.striptool_on = Tkinter.IntVar()
@@ -199,7 +199,7 @@ class MainWindow(Tkinter.Frame):
         self.parent.columnconfigure(3, weight=1)
         self.parent.columnconfigure(4, weight=1)
         self.parent.columnconfigure(5, weight=1)
-        
+
         #PARAMETER COLUMNS
         self.Tinput_params = ttk.Treeview(self.parent, columns=("lb", "ub", "delay"))
         self.Tinput_params.column("lb", width=120)
@@ -219,7 +219,7 @@ class MainWindow(Tkinter.Frame):
         self.Toutput_params.column("maxmin", width=80)
         self.Toutput_params.heading("maxmin", text="Target")
         self.Toutput_params.grid(row=0, column=3, columnspan=3)
-        
+
         #ADD PARAMETER BUTTONS
         self.btn_input_params_add = Tkinter.Button(self.parent, text="Add single", command=self.show_add_pv_window)
         self.btn_input_params_add.grid(row=1, column=0, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
@@ -227,7 +227,7 @@ class MainWindow(Tkinter.Frame):
         self.btn_input_params_addbulk.grid(row=2, column=0, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.btn_input_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_pv)
         self.btn_input_params_rmv.grid(row=1, column=2, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
-        
+
         #ADD OBJECTIVE BUTTONS
         self.btn_output_params_add = Tkinter.Button(self.parent, text="Add", command=self.show_add_obj_func_window)
         self.btn_output_params_add.grid(row=1, column=3, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
@@ -244,7 +244,7 @@ class MainWindow(Tkinter.Frame):
         self.btn_browse_save_address.grid(row=4, column=5, sticky=Tkinter.E+Tkinter.W)
 
         ttk.Separator(self.parent, orient='horizontal').grid(row=5, column=0, columnspan=6, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
-        
+
         #ALGORITHM CHOICE
         self.optimiserChoice = Tkinter.StringVar()
         Tkinter.Label(self.parent, text="Algorithm:").grid(row=6, column=0, sticky=Tkinter.E)
@@ -263,7 +263,7 @@ class MainWindow(Tkinter.Frame):
         self.r0.grid(row=8, column=4, sticky=Tkinter.E+Tkinter.W)
         self.r1 = Tkinter.Radiobutton(self.parent, text="Striptool On", variable=self.striptool_on, value=1)
         self.r1.grid(row=8, column=3, sticky=Tkinter.E+Tkinter.W)
-        
+
         #CONFIGURATION BUTTONS
         self.btn_load_config = Tkinter.Button(self.parent, text="Load configuration", command=self.load_config)
         self.btn_load_config.grid(row=8, column=0, sticky=Tkinter.E+Tkinter.W)
@@ -289,18 +289,18 @@ class MainWindow(Tkinter.Frame):
 
     def optimiserThreadMethod(self):
         global final_plot_frame
-        
+
         self.parameters.initial_measurements = self.parameters.interactor.get_mr()
-        
+
         #prepare folder in store_address to save fronts
         if not os.path.exists('{0}/FRONTS'.format(self.parameters.store_address)):
             os.makedirs('{0}/FRONTS'.format(self.parameters.store_address))
-            
-        ###NOW ACTUALLY CALL THE OPTIMISE FUNCTION WITHIN THE ALGORITHM FILE###   
+
+        ###NOW ACTUALLY CALL THE OPTIMISE FUNCTION WITHIN THE ALGORITHM FILE###
         start_time = time.time()   #START
         self.parameters.optimiser.optimise()       #OPTIMISING...
-        self.parameters.keepUpdating = False       
-        end_time = time.time()     #STOP 
+        self.parameters.keepUpdating = False
+        end_time = time.time()     #STOP
 
         #now save details for later reference by various code (results plotting, post_analysis etc..)
         self.parameters.interactor.set_mp(self.parameters.initial_settings)
@@ -309,13 +309,13 @@ class MainWindow(Tkinter.Frame):
                 self.parameters.store_address,
                 self.parameters.optimiser,
                 self.parameters.interactor)
-        
+
         if not os.path.exists('{0}/PARAMETERS'.format(self.parameters.store_address)):
             os.makedirs('{0}/PARAMETERS'.format(self.parameters.store_address))
-            
+
         if not os.path.exists('{0}/RESULTS'.format(self.parameters.store_address)):
             os.makedirs('{0}/RESULTS'.format(self.parameters.store_address))
-        
+
         #save parameters and objectives as Pickle objects
         for i in range(len(self.parameters.parameters)):
             usefulFunctions.save_object(self.parameters.parameters[i],
@@ -323,12 +323,12 @@ class MainWindow(Tkinter.Frame):
         for i in range(len(self.parameters.results)):
             usefulFunctions.save_object(self.parameters.results[i],
                     '{0}/RESULTS/result_{1}'.format(self.parameters.store_address, i))
-        
-        #save signconverter 
+
+        #save signconverter
         signConverter_file = open("{0}/signConverter.txt".format(self.parameters.store_address), 'w')
         signConverter_file.write(str(self.parameters.signConverter))
         signConverter_file.close()
-        
+
         #save the mapping method between algorithm parameters to machine parameters
         ap_to_mp_mapping_file = open("{0}/ap_to_mp_mapping_file.txt".format(self.parameters.store_address), 'w')
         ap_to_mp_mapping_file.write(self.parameters.interactor.string_ap_to_mp_store())
@@ -339,7 +339,7 @@ class MainWindow(Tkinter.Frame):
         #close progress window
         self.progress_window.grab_release()
         self.progress_window.withdraw()
-        
+
         #show the final plot windows
         ar_labels = [mrr.ar_label for mrr in self.parameters.results]
         final_plot_frame = optimiser_wrapper.import_algo_final_plot(self.final_plot_window,
@@ -365,10 +365,10 @@ class MainWindow(Tkinter.Frame):
     #next three functions make associated windows appear on screen
     def show_add_pv_window(self):
         self.parent.deiconify()
-        
+
     def show_add_bulk_pv_window(self):
         self.add_bulk_pv_window.deiconify()
-        
+
     def show_add_obj_func_window(self):
         self.add_obj_func_window.deiconify()
 
@@ -400,10 +400,10 @@ class MainWindow(Tkinter.Frame):
         """
         global optimiser_wrapper_address
         global Striptool_On
-        
+
         optimiser_wrapper_address = self.optimisers[self.optimiserChoice.get()]
         Striptool_On = self.striptool_on.get()
-        
+
         self.add_obj_func_window.withdraw()
         self.parent.withdraw()
         self.add_bulk_pv_window.withdraw()
@@ -417,7 +417,7 @@ class MainWindow(Tkinter.Frame):
         Loads a previously saved configuration
         """
         print "Loading configuration..."
-        
+
         config_file = tkFileDialog.askopenfile()
         config = pickle.load(config_file)
         self.parameters.parameters += config['parameters']
@@ -451,15 +451,15 @@ class MainWindow(Tkinter.Frame):
             mrr.list_iid = iid
 
         print [i.list_iid for i in self.parameters.parameters]
-        
-        
+
+
 
     def save_config(self):
         """
         Saves a configuration that has been define don screen
         """
-        
-        config_file = tkFileDialog.asksaveasfile()     
+
+        config_file = tkFileDialog.asksaveasfile()
         config = {'parameters' : self.parameters.parameters,
                   'results' : self.parameters.results}
 
@@ -472,14 +472,14 @@ class PointDetails(Tkinter.Frame):
     This class is for the window that is shown when clicking on a point in the final Pareto front. It requires reading saved files
     that are in Pickle format.
     """
- 
+
     def __init__(self, parent):
         print "INIT: Solution window"
         Tkinter.Frame.__init__(self, parent)
         self.parent = parent
         self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
         self.initUi()
- 
+
     def initUi(self):
         """
         generates GUI frame
@@ -491,7 +491,7 @@ class PointDetails(Tkinter.Frame):
         """
         generates table that goes into GUI
         """
-        
+
         global signConverter
 
         ''' First, unpickle the mp_to_ap mapping file '''
@@ -534,7 +534,7 @@ class PointDetails(Tkinter.Frame):
 
         btn_set = Tkinter.Button(self.parent, text="Set", command=self.set_state)
         btn_set.grid(row=3, column=2, sticky=Tkinter.W+Tkinter.E, pady=10)
-        
+
         btn_reset = Tkinter.Button(self.parent, text="Reset", command=self.reset_initial_config)
         btn_reset.grid(row=3, column=1, sticky=Tkinter.W+Tkinter.E, pady=10)
 
@@ -552,14 +552,14 @@ class PointDetails(Tkinter.Frame):
             tree_mp.insert('', 'end', text=mp_labels[i], values=(mp))
 
         self.parent.deiconify()
-        
+
 
     def set_state(self):
         """
         This allows the user to select a point and then to set the machine to this set of parameters
         """
         self.parameters.interactor.set_mp(self.mps)
-        
+
     def reset_initial_config(self):
         """
         This allows the user to reconfigure the machine to the original settings
@@ -574,7 +574,7 @@ class PointDetails(Tkinter.Frame):
 
 class AlgorithmSettings(Tkinter.Frame):
     """
-    This class import_algo_frame class in the algorithm file. This is used to collect the algorithm settings, then the 
+    This class import_algo_frame class in the algorithm file. This is used to collect the algorithm settings, then the
     optimisation is started. Once this begins, all windows associated with the main window disappear.
     """
 
@@ -625,52 +625,52 @@ class AlgorithmSettings(Tkinter.Frame):
         #settings errors to ensure good data
         if algo_settings_dict == "error":
             tkMessageBox.showerror("Algorithm settings error", "There was an error in one or more of the settings given. The optimisation procedure will not proceed.")
-        
+
         #show 'are you sure?' window
         else:
             interactorIdentity = ''
-            
+
             #machine interactor?
             if useMachine:
                 interactorIdentity = 'MACHINE'
-                
+
             #simulator interactor?
             else:
                 interactorIdentity = 'SIMULATOR'
-                
+
             userContinue = tkMessageBox.askyesno(title='READY?', message='You are using the ' + interactorIdentity + '. ' + 'Are you sure you wish to start optimisation?', icon=tkMessageBox.WARNING)
-            
+
             #if all is good; prepare for start of optimisation
             if userContinue:
                 mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
                         for mpgr in self.parameters.parameters]          #gather machine parameters
-                mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives) 
+                mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
                 relative_settings = [mpgr.relative_setting for mpgr in
                         self.parameters.parameters]                               #gather bounds for machine parameters
                 ap_min_var = [mpgr.ap_min for mpgr in self.parameters.parameters]                                                #gather minimum bounds for parameter parameters
                 ap_max_var = [mpgr.ap_max for mpgr in self.parameters.parameters]                                                #gather maximum bounds for parameter parameters
-                
+
                 #need a sign converter if any objectives are to be maximised (by default, algorithms minimise objectives)
                 for mrr in self.parameters.results:
                     if mrr.mr_to_ar_sign == '-':
                         self.parameters.signConverter.append(-1)
                     else:
                         self.parameters.signConverter.append(1)
-                        
+
                 #define the appropriate interactor depending on using machine or simulator
                 if useMachine:
                     self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
                 else:
                     self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
-                
+
                 self.parameters.interactor.results = self.parameters.results
                 #save the interactor object to file (used in post_analysis file)
                 usefulFunctions.save_object(self.parameters.interactor,
                         '{0}/interactor.txt'.format(self.parameters.store_address))
-                
+
                 #find out initial settings
                 initial_mp = self.parameters.interactor.get_mp()
-                
+
                 #initialise optimiser class in the algorithm file using settings dictionary among other arguments
                 self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
                                                         interactor=self.parameters.interactor,
@@ -704,7 +704,7 @@ class AddPv(Tkinter.Frame):
         """
         Define the 'add parameter PV' GUI
         """
-        
+
         self.parent.title("Add Parameter PV")
         self.setting_mode = Tkinter.IntVar()
         self.setting_mode.set(0)
@@ -740,7 +740,7 @@ class AddPv(Tkinter.Frame):
         """
         Once defined, collect PV address + other options and create parameter object
         """
-        
+
         details = (self.i0.get(), self.i1.get(), self.i2.get(), self.i3.get(), self.setting_mode.get())
         good_data = True
 
@@ -750,7 +750,7 @@ class AddPv(Tkinter.Frame):
         except:
             good_data = False
             tkMessageBox.showerror("Input Error", "The lower bound/change cannot be converted to a float")
-            
+
         if float(details[1])>0 and details[4]==1:
             good_data = False
             tkMessageBox.showerror("Input Error", "The lower change must be less than or equal to zero")
@@ -766,13 +766,13 @@ class AddPv(Tkinter.Frame):
         except:
             good_data = False
             tkMessageBox.showerror("Input Error", "The delay cannot be converted to a float")
-        
+
         #now that we have good data, make parameter object
         if good_data:
 
             #print parameter info on main window
             iid = self.main_window.Tinput_params.insert('', 'end', text=details[0], values=(details[1], details[2], details[3]))
-            
+
             #define parameter object
             mpgr = mp_group_representation()
             mpr = mp_representation()
@@ -810,127 +810,127 @@ class AddBulkPv(Tkinter.Frame):
     """
     This class is for adding a GROUP PARAMETER.
     """
-    
+
     def __init__(self, parent):
-        
+
         Tkinter.Frame.__init__(self, parent)
-        
+
         self.parent = parent
         self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
-        
+
         self.initUi()
-    
+
     def initUi(self):
         """
         define the 'Add Bulk Parameter PVs' GUI
         """
-        
+
         self.parent.title("Add Bulk Parameter PVs")
         self.setting_mode = Tkinter.IntVar()            #this is for which method of defining the parameter bounds is being used
         self.setting_mode.set(1)
-        
-        
+
+
         Tkinter.Label(self.parent, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
         self.i6 = Tkinter.Entry(self.parent)
         self.i6.grid(row=0, column=1, columnspan=2, sticky=Tkinter.W+Tkinter.E, pady=(10, 0), padx=(0, 10))
-        
+
         Tkinter.Label(self.parent, text="Group file (optional):").grid(row=1, column=0, sticky=Tkinter.E)
         self.i_file_address = Tkinter.Entry(self.parent)
         self.i_file_address.grid(row=1, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.btn_browse_file_address = Tkinter.Button(self.parent, text="Add group file...", command=self.browse_save_location)
         self.btn_browse_file_address.grid(row=1, column=2, sticky=Tkinter.E+Tkinter.W)
-        
+
         ttk.Separator(self.parent, orient='horizontal').grid(row=2, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
-        
+
         Tkinter.Label(self.parent, text="PV addresses:").grid(row=3, column=0, sticky=Tkinter.E+Tkinter.W)
         Tkinter.Label(self.parent, text="Lower bounds:").grid(row=3, column=1, sticky=Tkinter.E+Tkinter.W)
         Tkinter.Label(self.parent, text="Upper bounds:").grid(row=3, column=2, sticky=Tkinter.E+Tkinter.W)
-        
+
         self.i0 = Tkinter.Text(self.parent, width=40)
         self.i0.grid(row=4, column=0, sticky=Tkinter.E+Tkinter.W)
         self.i1 = Tkinter.Text(self.parent, width=40)
         self.i1.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
         self.i2 = Tkinter.Text(self.parent, width=40)
         self.i2.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self.parent, text="Change:").grid(row=5, column=0, sticky=Tkinter.E)
-        
+
         self.i4 = Tkinter.Entry(self.parent)
         self.i4.grid(row=5, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         self.i5 = Tkinter.Entry(self.parent)
         self.i5.grid(row=5, column=2, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self.parent, text="Delay:").grid(row=6, column=0, sticky=Tkinter.E)
         self.i3 = Tkinter.Entry(self.parent)
         self.i3.grid(row=6, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-        
+
         self.r0 = Tkinter.Radiobutton(self.parent, text="Define PV Change", variable=self.setting_mode, value=0)
         self.r0.grid(row=7, column=1)
-        
+
         self.r2 = Tkinter.Radiobutton(self.parent, text="Define PV Bounds", variable=self.setting_mode, value=1)
         self.r2.grid(row=7, column=0)
-        
+
         self.b0 = Tkinter.Button(self.parent, text="Cancel", command=self.parent.withdraw)
         self.b0.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         self.b1 = Tkinter.Button(self.parent, text="Add", command=self.add_pvs)
         self.b1.grid(row=8, column=2, sticky=Tkinter.E+Tkinter.W)
-        
-        
-        
+
+
+
     def browse_save_location(self):
         """
         This class is for reading a csv file with list of parameter PVs, which are then put into the column of parameter PVs in the 'Add Bulk Parameter PVs' window
         """
-        
+
         store_directory = tkFileDialog.askopenfile()
         self.i_file_address.delete(0, 'end')
         self.i_file_address.insert(0, store_directory.name)
         groupPV_address = store_directory
-        
+
         print groupPV_address
-        
+
         group_file = open(groupPV_address.name, 'r')
         wr = csv.reader(group_file)
-        
+
         addresses = []
-        
+
         for row in wr:
             addresses.append(row[0:1][0])
-        
+
         for i in addresses:
-            
+
             if i == addresses[-1]:
                 self.i0.insert(Tkinter.END, i)
                 return
-            
+
             self.i0.insert(Tkinter.END, '{0}\n'.format(i))
 
-        
-        
+
+
     def add_pvs(self):
         """
-        Once the group PV has been defined, create a group parameter object 
+        Once the group PV has been defined, create a group parameter object
         """
-        
+
         #collect data from GUI
         details = (self.i0.get(0.0, Tkinter.END), self.i1.get(0.0, Tkinter.END), self.i2.get(0.0, Tkinter.END), self.i4.get(), self.i5.get(), self.i3.get(), self.setting_mode.get())
         processed_details = [[], [], [], None, None, None, None] # This will contain PVs, lb, ub, lc, uc, delay, and setting_mode
-        
+
         for address in details[0].splitlines():
             processed_details[0].append(str(address))
-        
+
         for lower,  upper in zip(details[1].splitlines(), details[2].splitlines()):
             processed_details[1].append(lower)
             processed_details[2].append(upper)
-        
+
         processed_details[3] = details[3]
         processed_details[4] = details[4]
-        
+
         processed_details[5] = details[5]
         processed_details[6] = details[6]
-        
+
         # Check that the data is all of the correct format
         good_data = True
         for i in range(len(processed_details[1])):
@@ -940,7 +940,7 @@ class AddBulkPv(Tkinter.Frame):
             except:
                 tkMessageBox.showerror("Format error with lower bound", "The lower bound value for PV #{0}: \"{1}\", could not be converted to a float. Please check the values you have entered.".format(i+1, processed_details[1][i]))
                 good_data = False
-        
+
         for i in range(len(processed_details[2])):
             try:
                 if processed_details[6] in [0, 1] and processed_details[6] == 1:
@@ -948,85 +948,85 @@ class AddBulkPv(Tkinter.Frame):
             except:
                 tkMessageBox.showerror("Format error with upper bound", "The upper bound value for PV #{0}: \"{1}\", could not be converted to a float. Please check the values you have entered.".format(i+1, processed_details[2][i]))
                 good_data = False
-        
+
         try:
             if processed_details[6] == 0:
                 processed_details[3] = float(processed_details[3])
         except:
             tkMessageBox.showerror("Format error with lower change", "The lower change value: \"{0}\", could not be converted to a float. Please check the value you have entered.".format(processed_details[3]))
             good_data = False
-            
+
         if float(processed_details[6])==0 and float(processed_details[3])>0:
             good_data = False
             tkMessageBox.showerror("Input Error", "The lower change must be less than or equal to zero")
-        
+
         try:
             if processed_details[6] == 0:
                 processed_details[4] = float(processed_details[4])
         except:
             tkMessageBox.showerror("Format error with upper change", "The upper change value: \"{0}\", could not be converted to a float. Please check the value you have entered.".format(processed_details[4]))
             good_data = False
-        
+
         try:
             processed_details[5] = float(processed_details[5])
         except:
             tkMessageBox.showerror("Format error with delay", "The delay value: \"{0}\", could not be converted to a float. Please check the value you have entered.".format(processed_details[5]))
             good_data = False
-        
-        #now that we have good data, create object 
+
+        #now that we have good data, create object
         if good_data:
-            
+
             mpgr = mp_group_representation()
             for pv in processed_details[0]:
                 mpr = mp_representation()
                 mpr.mp_obj = util.dls_param_var(pv, processed_details[5])
                 mpr.mp_label = pv
                 mpgr.mp_representations.append(mpr)
-                
+
             print "processed_details[0]: {0}".format(processed_details[0])
             print "mpgr to be added: {0}".format([i.mp_label for i in mpgr.mp_representations])
-            
+
             #need to calculate bounds and hence need to use the machine interactor to measure PVs
             temp_interactor = modified_interactor2(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]])
             initial_mps = temp_interactor.get_mp()
-            
+
             if processed_details[6] == 1:
                 # This means we are setting according to the bounds
-                
+
                 # Calculate relative from bounds
                 a_min, a_max = util.find_group_a_bounds(processed_details[1], processed_details[2], initial_mps, True)
-                
+
                 mpgr.relative_setting = True
                 mpgr.ap_min = a_min
                 mpgr.ap_max = a_max
 
-            
+
             elif processed_details[6] == 0:
                 # This means we are setting according to the change, not the bounds
-                
+
                 # Calculate relative from change
                 mpgr.relative_setting = True
                 mpgr.ap_min = processed_details[3]
                 mpgr.ap_max = processed_details[4]
-                
+
                 processed_details[1] = ["" for i in processed_details[0]]
                 processed_details[2] = ["" for i in processed_details[0]]
-            
+
             #insert information of group parameter into main window
             parent_iid = self.main_window.Tinput_params.insert('', 'end', text=self.i6.get(), values=(mpgr.ap_min, mpgr.ap_max, processed_details[5]))
             mpgr.list_iid = parent_iid
-            
+
             for i, mpr in enumerate(mpgr.mp_representations):
                 print "ADDING GROUP PARAMETER"
                 iid = self.main_window.Tinput_params.insert(parent_iid, 'end', text=processed_details[0][i], values=(processed_details[1][i], processed_details[2][i], processed_details[5]))
                 mpr.list_iid = iid
-            
+
             mpgr.ap_label = self.i6.get()
             parameters.append(mpgr)
-                       
+
             add_bulk_pv_window.withdraw()
-            
-        
+
+
     def x_button(self):
         print "Exited"
         self.parent.withdraw()
@@ -1048,7 +1048,7 @@ class StripPlot(Tkinter.Frame):
         """
         define GUI
         """
-        
+
         global interactor
         self.interactor = interactor
         self.data_sets = []
@@ -1092,7 +1092,7 @@ class ShowProgress(Tkinter.Frame):
 
         self.parent = parent
         self.parameters = parameters
-        #variables for progress percentage 
+        #variables for progress percentage
         self.progress = Tkinter.DoubleVar()
         self.progress.set(0.00)
 
@@ -1117,7 +1117,7 @@ class ShowProgress(Tkinter.Frame):
         self.pbar_progress = ttk.Progressbar(self.parent, length=400,
                 variable=self.progress)
         self.pbar_progress.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
-        
+
         #optional striptool feature (recommended to the user to be turned off (==0)
         if Striptool_On == 1:
             self.strip_plot = StripPlot(self.parent)
@@ -1221,7 +1221,7 @@ class AddObjFunc(Tkinter.Frame):
         """
         Define 'Add Objective PV' GUI
         """
-        
+
         self.parent.title("Add Objective PV")
         self.max_min_setting = Tkinter.IntVar()
         self.max_min_setting.set(0)                 #this setting is for choosing whether objective will maximised or minimised
@@ -1247,7 +1247,7 @@ class AddObjFunc(Tkinter.Frame):
         self.b1.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
         self.b2 = Tkinter.Button(self.parent, text="OK", command=self.add_pv_to_list)
         self.b2.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
-             
+
 
     def add_pv_to_list(self):
         """
@@ -1255,7 +1255,7 @@ class AddObjFunc(Tkinter.Frame):
         """
         #create object
         mrr = config.MrRepresentation()
-        
+
         #retrieve information from GUI
         mrr.mr_obj = util.dls_measurement_var(self.i0.get(), float(self.i1.get()), float(self.i2.get()))
 
