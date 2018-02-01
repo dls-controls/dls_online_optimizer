@@ -22,7 +22,7 @@ import ttk
 import tkMessageBox
 import cothread
 
-import dls_optimiser_plot as plot
+import .plot
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg

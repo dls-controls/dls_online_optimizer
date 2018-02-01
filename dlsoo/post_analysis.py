@@ -34,8 +34,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
 
-import dls_optimiser_util as util
-import dls_optimiser_plot as plot
+import .util
+import .plot
 
 store_address = None
 algorithm_name = ""

@@ -15,7 +15,7 @@ import ttk
 import tkMessageBox
 
 from scipy import spatial
-import dls_optimiser_plot as plot
+import .plot
 
 import matplotlib
 matplotlib.use("TkAgg")

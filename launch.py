@@ -46,8 +46,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
 
-import dls_optimiser_util as util
-import dls_optimiser_plot as plot
+from dlsoo import util
+from dlsoo import plot
 
 def save_object(obj, filename):
     with open(filename, 'wb') as output:
