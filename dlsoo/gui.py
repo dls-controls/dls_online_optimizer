@@ -236,7 +236,8 @@ class MainWindow(Tkinter.Frame):
         self.optimiserChoice = Tkinter.StringVar()
         Tkinter.Label(self.parent, text="Algorithm:").grid(row=6, column=0, sticky=Tkinter.E)
         self.algo = ttk.Combobox(self.parent, textvariable=self.optimiserChoice,
-                values=self.optimisers.keys())
+                values=self.optimisers.keys(), state='readonly')
+        self.algo.current(0)
         self.algo.grid(row=6, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
         ttk.Separator(self.parent, orient='horizontal').grid(row=7, column=0, columnspan=6, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
