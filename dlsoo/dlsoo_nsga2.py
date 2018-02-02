@@ -15,19 +15,12 @@ import ttk
 import tkMessageBox
 
 from dlsoo import plot
-import matplotlib
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-import matplotlib.cm as cm
-import matplotlib.pyplot as pyplot
-
 
 
 store_address = None
 completed_generation = None
-
-
 
 # colour display codes
 ansi_red = "\x1B[31m"

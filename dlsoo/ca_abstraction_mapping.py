@@ -1,10 +1,7 @@
 from __future__ import division
 import math
 
-import pkg_resources
-pkg_resources.require('cothread')
-
-from cothread.catools import caget, caput, ca_nothing
+from cothread.catools import caget
 
 number_of_bunches = None
 

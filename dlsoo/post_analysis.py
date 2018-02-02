@@ -9,8 +9,6 @@ Created on 19 Jul 2017
 from __future__ import division
 
 import pkg_resources
-from audioop import avg
-pkg_resources.require('cothread')
 pkg_resources.require('matplotlib')
 pkg_resources.require('numpy')
 pkg_resources.require('scipy')

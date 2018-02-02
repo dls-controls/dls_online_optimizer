@@ -7,8 +7,6 @@ MULTI-OBJECTIVE SIMULATED ANEALING ALGORITHM
 from __future__ import division
 import numpy
 import math
-import time
-import sys
 import os
 import random
 import scipy.stats as stats
@@ -16,16 +14,11 @@ import scipy.stats as stats
 import Tkinter
 import ttk
 import tkMessageBox
-import cothread
 
 from dlsoo import plot
 from dlsoo.usefulFunctions import *
-import matplotlib
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-import matplotlib.cm as cm
-import matplotlib.pyplot as pyplot
 # colour display codes
 ansi_red = "\x1B[31m"
 ansi_normal = "\x1B[0m"
