@@ -13,7 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 
 import cothread
-from . import config, plot, util, usefulFunctions
+from . import config, plot, tkutil, util, usefulFunctions
 
 
 def save_details_files(start_time, end_time, store_address, optimiser,
@@ -74,9 +74,9 @@ class Gui(object):
     def __init__(self, optimisers, parameters):
         self.root = Tkinter.Tk()
         self.root.title("DLS Online Optimiser")
-        rootInit = Tkinter.Toplevel(self.root)
-        rootInit.title('DLS Interactor Selector')
-        initter = InteractorSelector(self.root, rootInit)
+        self.root.geometry('+100+100')
+        self.parameters = parameters
+        print(self.root.geometry())
 
         #threading method for Pause and Cancel methods to work
         def yielder():
@@ -86,48 +86,38 @@ class Gui(object):
 
         # The main setup window
         self.main_window = MainWindow(self.root, optimisers, parameters)
+        selector = TargetSelector(self.root)
+        self.root.wait_window(selector)
+        self.parameters.useMachine = selector.machine_selected()
 
     def start(self):
         self.root.mainloop()
         cothread.WaitForQuit()
 
 
-class InteractorSelector(Tkinter.Frame):
-    """
-    This class generates the window that allows the choice between using the machine or the simulator
-    """
-    def __init__(self, root, parent):
-        """
-        generate GUI
-        """
-        Tkinter.Frame.__init__(self, parent)
-        root.withdraw()
-        self.root = root
-        self.parent = parent
-        self.grid()
-        self.iChoice = Tkinter.StringVar()
-        self.iChoice.set('Simulator')
-        self.question1 = Tkinter.Label(self, text='Which interactor are you intending to use?')
-        self.question1.grid(row=0, column=0)
-        self.optList = ttk.Combobox(self, textvariable=self.iChoice, values=('Machine', 'Simulator'))
-        self.optList.grid(row=1,column=0)
-        self.subBtn = Tkinter.Button(self, text='Continue', command=self.setInteractor)
-        self.subBtn.grid(row=2, column=0)
+class TargetSelector(tkutil.DialogBox):
 
-    def setInteractor(self):
-        """
-        now set the interactor to the chosen option
-        """
-        global useMachine
-        item = self.iChoice.get()
-        if item == 'Machine':
-            useMachine = True
-            self.parent.withdraw()
-            self.root.deiconify()
-        elif item == 'Simulator':
-            useMachine = False
-            self.parent.withdraw()
-            self.root.deiconify()
+    def __init__(self, parent):
+        self.selected = Tkinter.IntVar()
+        self.selected.set(1)
+        tkutil.DialogBox.__init__(self, parent)
+        self.title('Choose optimisation target')
+
+    def machine_selected(self):
+        return self.selected.get() == 2
+
+    def create_body(self):
+        self.body = Tkinter.Frame(self)
+        self.body.grid()
+        question1 = Tkinter.Label(self.body, text='Which interactor are you intending to use?')
+        question1.grid(row=0, column=0, columnspan=2)
+        sim_button = ttk.Radiobutton(self.body, text='Simulator', variable=self.selected, value=1)
+        sim_button.grid(row=1, column=0)
+        machine_button = ttk.Radiobutton(self.body, text='Machine', variable=self.selected, value=2)
+        machine_button.grid(row=1, column=1)
+        continue_button = Tkinter.Button(self.body, text='Continue', command=self.cancel)
+        continue_button.grid(row=2, column=0, columnspan=2)
+        self.body.pack()
 
 
 class MainWindow(Tkinter.Frame):
@@ -186,8 +176,6 @@ class MainWindow(Tkinter.Frame):
         # dialog for final plot
         self.final_plot_window = Tkinter.Toplevel(self.parent)
         self.final_plot_window.withdraw()
-
-        self.parent.title("DLS Machine Optimiser")
 
         self.striptool_on = Tkinter.IntVar()
         self.striptool_on.set(0)
@@ -284,8 +272,8 @@ class MainWindow(Tkinter.Frame):
         self.progress_window.grab_set()
         cothread.Spawn(self.optimiserThreadMethod)
 
-
     def optimiserThreadMethod(self):
+        print('got here!')
         global final_plot_frame
 
         self.parameters.initial_measurements = self.parameters.interactor.get_mr()
@@ -593,7 +581,6 @@ class AlgorithmSettings(Tkinter.Frame):
         b0 = Tkinter.Button(self.parent, text="Start...", bg="red", command=self.set_settings)
         b0.grid(row=2, column=1, sticky=Tkinter.E+Tkinter.W)
 
-
     def load_algo_frame(self, file_address):
         """
         Put import_algo_frame class in the GUI frame
@@ -621,58 +608,60 @@ class AlgorithmSettings(Tkinter.Frame):
             interactorIdentity = ''
 
             #machine interactor?
-            if useMachine:
+            if self.parameters.useMachine:
                 interactorIdentity = 'MACHINE'
 
             #simulator interactor?
             else:
                 interactorIdentity = 'SIMULATOR'
 
-            userContinue = tkMessageBox.askyesno(title='READY?', message='You are using the ' + interactorIdentity + '. ' + 'Are you sure you wish to start optimisation?', icon=tkMessageBox.WARNING)
+            tkutil.InfoPopup(
+                self,
+                'READY?',
+                'You are using the ' + interactorIdentity + '. ' +
+                        'Are you sure you wish to start optimisation?')
 
-            #if all is good; prepare for start of optimisation
-            if userContinue:
-                mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
-                        for mpgr in self.parameters.parameters]          #gather machine parameters
-                mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
-                relative_settings = [mpgr.relative_setting for mpgr in
-                        self.parameters.parameters]                               #gather bounds for machine parameters
-                ap_min_var = [mpgr.ap_min for mpgr in self.parameters.parameters]                                                #gather minimum bounds for parameter parameters
-                ap_max_var = [mpgr.ap_max for mpgr in self.parameters.parameters]                                                #gather maximum bounds for parameter parameters
+            mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
+                    for mpgr in self.parameters.parameters]          #gather machine parameters
+            mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
+            relative_settings = [mpgr.relative_setting for mpgr in
+                    self.parameters.parameters]                               #gather bounds for machine parameters
+            ap_min_var = [mpgr.ap_min for mpgr in self.parameters.parameters]                                                #gather minimum bounds for parameter parameters
+            ap_max_var = [mpgr.ap_max for mpgr in self.parameters.parameters]                                                #gather maximum bounds for parameter parameters
 
-                #need a sign converter if any objectives are to be maximised (by default, algorithms minimise objectives)
-                for mrr in self.parameters.results:
-                    if mrr.mr_to_ar_sign == '-':
-                        self.parameters.signConverter.append(-1)
-                    else:
-                        self.parameters.signConverter.append(1)
-
-                #define the appropriate interactor depending on using machine or simulator
-                if useMachine:
-                    self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
+            #need a sign converter if any objectives are to be maximised (by default, algorithms minimise objectives)
+            for mrr in self.parameters.results:
+                if mrr.mr_to_ar_sign == '-':
+                    self.parameters.signConverter.append(-1)
                 else:
-                    self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
+                    self.parameters.signConverter.append(1)
 
-                self.parameters.interactor.results = self.parameters.results
-                #save the interactor object to file (used in post_analysis file)
-                usefulFunctions.save_object(self.parameters.interactor,
-                        '{0}/interactor.txt'.format(self.parameters.store_address))
+            #define the appropriate interactor depending on using machine or simulator
+            if self.parameters.useMachine:
+                self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
+            else:
+                self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
 
-                #find out initial settings
-                initial_mp = self.parameters.interactor.get_mp()
+            self.parameters.interactor.results = self.parameters.results
+            #save the interactor object to file (used in post_analysis file)
+            usefulFunctions.save_object(self.parameters.interactor,
+                    '{0}/interactor.txt'.format(self.parameters.store_address))
 
-                #initialise optimiser class in the algorithm file using settings dictionary among other arguments
-                self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
-                                                        interactor=self.parameters.interactor,
-                                                        store_location=self.parameters.store_address,
-                                                        a_min_var=ap_min_var,
-                                                        a_max_var=ap_max_var,
-                                                        progress_handler=self.progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
+            #find out initial settings
+            initial_mp = self.parameters.interactor.get_mp()
 
-                #withdraw all windows associated with the main window
-                self.parent.withdraw()
-                #NOW RUN THE OPTIMISATION (using function below)
-                self.main_window.run_optimisation()
+            #initialise optimiser class in the algorithm file using settings dictionary among other arguments
+            self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
+                                                    interactor=self.parameters.interactor,
+                                                    store_location=self.parameters.store_address,
+                                                    a_min_var=ap_min_var,
+                                                    a_max_var=ap_max_var,
+                                                    progress_handler=self.progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
+
+            #withdraw all windows associated with the main window
+            self.parent.withdraw()
+            #NOW RUN THE OPTIMISATION (using function below)
+            self.main_window.run_optimisation()
 
 
 class AddPv(Tkinter.Frame):
@@ -1085,9 +1074,6 @@ class ShowProgress(Tkinter.Frame):
         """
         Define GUI
         """
-        global signConverter
-        global Striptool_On
-
         self.parent.title("Optimising...")
 
         self.rowconfigure(0, weight=1)
@@ -1138,7 +1124,6 @@ class ShowProgress(Tkinter.Frame):
             self.strip_plot.update()
 
         self.progress_plot.update()
-
 
     def pause_algo(self):
         """

@@ -633,8 +633,6 @@ class import_algo_prog_plot(Tkinter.Frame):
         self.canvas.show()
         self.canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
-
-
     def update(self):
         """
         after each iteration, plot the new front

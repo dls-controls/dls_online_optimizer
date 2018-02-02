@@ -18,6 +18,7 @@ pkg_resources.require('numpy')
 pkg_resources.require('scipy')
 
 import matplotlib
+matplotlib.use("TkAgg")
 
 from dlsoo import config, gui
 
@@ -34,11 +35,9 @@ if __name__ == '__main__':
     print 'Welcome to DLS-OnlineOptimiser'
     print 'Loading...'
     print 'Initialling setup windows...'
-    matplotlib.use("TkAgg")
 
     parameters = config.Parameters()
 
     g = gui.Gui(OPTIMISERS, parameters)
 
-    #start everything
     g.start()
