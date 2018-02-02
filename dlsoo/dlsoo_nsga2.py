@@ -103,8 +103,6 @@ class optimiser:
 
         self.pause = False
 
-        #print "self.individuals: {0}".format(self.individuals)
-        #print "self."
         print "interactor.param_var_groups: {0}".format(interactor.param_var_groups)
         print "interactor.measurement_vars: {0}".format(interactor.measurement_vars)
 
@@ -112,7 +110,7 @@ class optimiser:
 
         file_return = ""
 
-        file_return += "dlsoo-nsga2.py algorithm\n"
+        file_return += "dlsoo_nsga2.py algorithm\n"
         file_return += "=================\n\n"
         file_return += "Generations: {0}\n".format(self.generations)
         file_return += "Population size: {0}\n\n".format(self.population_size)

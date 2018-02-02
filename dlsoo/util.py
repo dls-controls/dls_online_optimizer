@@ -642,7 +642,6 @@ class dls_machine_interactor_base:
         return ars
 
 
-
 class sim_machine_interactor_base:
 
     def __init__(self, param_vars, measurement_vars):
@@ -687,7 +686,6 @@ class sim_machine_interactor_base:
         self.set_ap(aps)
         ars = self.get_ar()
         return ars
-
 
 
 class dls_machine_interactor_bulk_base_inj_control:

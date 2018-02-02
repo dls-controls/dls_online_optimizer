@@ -21,18 +21,16 @@ def save_details_files(start_time, end_time, store_address, optimiser,
     """
     saves details of optimisation in txt file using functions in the algorithm file and in dls_optimiser_util.py
     """
-    f = file("{0}/algo_details.txt".format(store_address), "w")
-    f.write(optimiser.save_details_file())
-
-    f = file("{0}/inter_details.txt".format(store_address), "w")
-    f.write(interactor.save_details_file())
-
-    f = file("{0}/controller_details.txt".format(store_address), "w")
-    f.write("Controller\n")
-    f.write("==========\n\n")
-
-    f.write("Start time: {0}-{1}-{2} {3}:{4}:{5}\n".format(start_time.year, start_time.month, start_time.day, start_time.hour, start_time.minute, start_time.second))
-    f.write("End time: {0}-{1}-{2} {3}:{4}:{5}\n".format(end_time.year, end_time.month, end_time.day, end_time.hour, end_time.minute, end_time.second))
+    with open(os.path.join(store_address, 'algo_details.txt'), 'w') as f:
+        f.write(optimiser.save_details_file())
+    with open(os.path.join(store_address, 'inter_details.txt'), 'w') as f:
+        f.write(interactor.save_details_file())
+    with open(os.path.join(store_address, 'controller_details.txt'), 'w') as f:
+        f = file("{0}/controller_details.txt".format(store_address), "w")
+        f.write("Controller\n")
+        f.write("==========\n\n")
+        f.write("Start time: {0}-{1}-{2} {3}:{4}:{5}\n".format(start_time.year, start_time.month, start_time.day, start_time.hour, start_time.minute, start_time.second))
+        f.write("End time: {0}-{1}-{2} {3}:{4}:{5}\n".format(end_time.year, end_time.month, end_time.day, end_time.hour, end_time.minute, end_time.second))
 
 #The two classes below are for simulated interaction and machine interaction respectively.
 
@@ -87,14 +85,12 @@ class Gui(object):
         self.root.after(100, yielder)
 
         # The main setup window
-        self.main_window = MainWindow(self.root,
-                optimisers,
-                parameters
-                )
+        self.main_window = MainWindow(self.root, optimisers, parameters)
 
     def start(self):
         self.root.mainloop()
         cothread.WaitForQuit()
+
 
 class InteractorSelector(Tkinter.Frame):
     """
@@ -277,8 +273,7 @@ class MainWindow(Tkinter.Frame):
         """
         initialises progress windows and calls on the the optimisation to begin susing function below
         """
-        global final_plot_frame
-        print "Lets go!"
+        print "Let's go!"
 
         self.progress_frame.initUi()
         self.algorithm_settings_window.withdraw()
@@ -607,8 +602,6 @@ class AlgorithmSettings(Tkinter.Frame):
         module = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                 '{}.py'.format(module_name))
         global optimiser_wrapper
-        print(module_name)
-        print(module)
         optimiser_wrapper = imp.load_source(module_name, module)
         self.algo_frame = optimiser_wrapper.import_algo_frame(self.parent)
 

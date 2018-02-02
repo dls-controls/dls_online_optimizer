@@ -5,7 +5,6 @@ Created on 19 Jul 2017
 
 @author: James Rogers
 '''
-
 from __future__ import division
 import pkg_resources
 import Tkinter
@@ -19,8 +18,6 @@ import ast
 import matplotlib
 matplotlib.use("TkAgg")
 
-from dlsoo import util
-
 
 store_address = None
 algorithm_name = ""
@@ -31,7 +28,7 @@ results = []
 parameters = []
 
 
-class main_window(Tkinter.Frame):
+class MainWindow(Tkinter.Frame):
 
     def __init__(self, parent):
         Tkinter.Frame.__init__(self, parent)
@@ -51,7 +48,6 @@ class main_window(Tkinter.Frame):
         self.parent.columnconfigure(3, weight=1)
 
         self.parent.title("DLS Post Optimisation Analysis")
-
 
         Tkinter.Label(self.parent, text="Data directory:").grid(row=0, column=0, sticky=Tkinter.E)
         self.i_save_address = Tkinter.Entry(self.parent)
@@ -108,8 +104,9 @@ class main_window(Tkinter.Frame):
         """
         Import the appropriate algorithm file
         """
-        global optimiser_wrapper
-        optimiser_wrapper = imp.load_source(os.path.splitext(os.path.split(file_address)[1])[0], file_address)
+        module_name = os.path.splitext(os.path.basename(file_address))[0]
+        optimiser_wrapper = imp.load_source(module_name, file_address)
+        return optimiser_wrapper
 
     def next_button(self):
         """
@@ -119,7 +116,6 @@ class main_window(Tkinter.Frame):
         global algorithm_name
         global store_address
         global algo_frame
-        global optimiser_wrapper
         global parameters
         global results
         global interactor
@@ -146,7 +142,7 @@ class main_window(Tkinter.Frame):
         ar_labels = [mrr.ar_label for mrr in results]
 
         #load the algorithm file
-        self.load_algo_frame('{0}/{1}'.format(os.getcwd(), algorithm_name))
+        optimiser_wrapper = self.load_algo_frame('{0}/dlsoo/{1}'.format(os.getcwd(), algorithm_name))
 
         #load and show the final plot from the optimisation
         final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window, point_frame.generateUi, ar_labels, signConverter, post_analysis_store_address = store_address)
@@ -256,7 +252,7 @@ if __name__ == '__main__':
     #setup main window
     root = Tkinter.Tk()
     root.title("DLS Post Optimisation Analysis")
-    the_main_window = main_window(root)
+    the_main_window = MainWindow(root)
 
     #setup final plot window
     final_plot_window = Tkinter.Toplevel(root)
