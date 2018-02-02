@@ -30,88 +30,6 @@ interactor = None
 results = []
 parameters = []
 
-#---------------------------------------------------------------- CLASSES FROM MAIN.PY -------------------------------------#
-
-#The next FIVE classes are needed in order to mimic main.py.
-
-class modified_interactor1(util.sim_machine_interactor_bulk_base):
-    """
-    This interactor is the for a simulation
-    """
-    def mr_to_ar(self, mrs):
-        #converts a set of machine results to algorithm results
-        ars = []
-
-        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in results]
-        for mr, sign in zip(mrs, mr_to_ar_sign):
-            if sign == '+':
-                ars.append(mr)
-            elif sign == '-':
-                ars.append(-mr)
-
-        return ars
-
-class modified_interactor2(util.dls_machine_interactor_bulk_base):
-    """
-    This interactor is the for using the machine
-    """
-    def mr_to_ar(self, mrs):
-        #converts a set of machine results to algorithm results
-        ars = []
-
-        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in results]
-        for mr, sign in zip(mrs, mr_to_ar_sign):
-            if sign == '+':
-                ars.append(mr)
-            elif sign == '-':
-                ars.append(-mr)
-
-        return ars
-
-
-class mp_group_representation:
-    """
-    Machine group of parameters
-    """
-
-    def __init__(self):
-
-        self.mp_representations = []
-        self.list_iid = None
-        self.ap_label = None
-        self.relative_setting = None
-        self.ap_min = None
-        self.ap_max = None
-
-
-class mp_representation:
-    """
-    Machine parameter
-    """
-
-    def __init__(self):
-
-        self.mp_obj = None
-        self.list_iid = None
-        self.mp_label = None
-
-
-class mr_representation:
-    """
-    Machine result (objective)
-    """
-
-    def __init__(self):
-
-        self.mr_obj = None
-        self.list_iid = None
-        self.mr_label = None
-        self.ar_label = None
-        self.mr_to_ar_sign = None
-        self.max_min_text = None
-        self.max_min_sign = None
-
-#----------------------------------------------------------------- MAIN WINDOW SETUP -----------------------------------------------#
 
 class main_window(Tkinter.Frame):
 
@@ -149,7 +67,6 @@ class main_window(Tkinter.Frame):
         ttk.Separator(self.parent, orient='horizontal').grid(row=2, column=0, columnspan=4, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
         Tkinter.Label(self.parent, text="Please choose a directory in which optimisation data files have been saved.", justify=Tkinter.LEFT).grid(row=3, column=0, columnspan=4, sticky=Tkinter.W)
-
 
     def browse_save_location(self):
         """

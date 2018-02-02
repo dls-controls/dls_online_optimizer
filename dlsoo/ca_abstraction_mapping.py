@@ -25,10 +25,6 @@ def lifetime_proxy():
     epsilon_y = caget('SR-DI-EMIT-01:VEMIT_MEAN')
 
     bunch_length_value = bunch_length(I_beam)
-    #print 'PMT ',PMT_count
-    #print 'I_beam', I_beam
-    #print 'emittance', epsilon_y
-    #print 'bunch_length', bunch_length_value
 
     objective = I_beam/(PMT_count*bunch_length_value*math.sqrt(epsilon_y))
 
