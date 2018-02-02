@@ -7,12 +7,7 @@ Created on 19 Jul 2017
 '''
 
 from __future__ import division
-
 import pkg_resources
-pkg_resources.require('matplotlib')
-pkg_resources.require('numpy')
-pkg_resources.require('scipy')
-
 import Tkinter
 import ttk
 import tkFileDialog
@@ -21,11 +16,11 @@ import os
 import imp
 import pickle
 import ast
-
 import matplotlib
 matplotlib.use("TkAgg")
 
-from . import util
+from dlsoo import util
+
 
 store_address = None
 algorithm_name = ""
@@ -192,15 +187,12 @@ class main_window(Tkinter.Frame):
 
         return good_file
 
-
     def load_algo_frame(self, file_address):
         """
         Import the appropriate algorithm file
         """
         global optimiser_wrapper
         optimiser_wrapper = imp.load_source(os.path.splitext(os.path.split(file_address)[1])[0], file_address)
-
-
 
     def next_button(self):
         """
@@ -340,9 +332,10 @@ class point_details(Tkinter.Frame):
         self.parent.withdraw()
 
 
-
-
 if __name__ == '__main__':
+    pkg_resources.require('matplotlib')
+    pkg_resources.require('numpy')
+    pkg_resources.require('scipy')
     #setup main window
     root = Tkinter.Tk()
     root.title("DLS Post Optimisation Analysis")
@@ -356,6 +349,5 @@ if __name__ == '__main__':
     point_window = Tkinter.Toplevel(root)
     point_frame = point_details(point_window)
     point_window.withdraw()
-
 
     root.mainloop()
