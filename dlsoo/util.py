@@ -13,25 +13,15 @@ IMPORTANT KEY:
         MPs: Machine parameters
 
 '''
-
 from __future__ import division
-
-import pkg_resources
-from audioop import avg
-pkg_resources.require('cothread')
-
-import random
 
 import time
 import math
 import pickle
-import types
 import model
-import kur_model
 import ca_abstraction_mapping
 
-from cothread.catools import caget, caput, ca_nothing
-from cothread.cadef import CAException
+from cothread.catools import caget, caput
 import cothread
 
 #---------------------------------------------------------IMPORTANT FUNCTIONS-----------------------------------------------#

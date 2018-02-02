@@ -9,11 +9,8 @@ Created on 19 Jul 2017
 
 from __future__ import division
 
-import pkg_resources
-from audioop import avg
 import operator
 
-import matplotlib.pyplot as pyplot
 import matplotlib.cm as cm
 import numpy
 import matplotlib.patches as pat

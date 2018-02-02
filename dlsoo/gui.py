@@ -9,6 +9,11 @@ import ttk
 import tkFileDialog
 import tkMessageBox
 
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
+
 import cothread
 from . import config, plot, util, usefulFunctions
 
@@ -148,12 +153,12 @@ class MainWindow(Tkinter.Frame):
         """
         # The dialog for adding input parameters
         self.add_pv_window = Tkinter.Toplevel(self.parent)
-        self.add_pv_frame = AddPv(self.add_pv_window, self)
+        self.add_pv_frame = AddPv(self.add_pv_window, self, self.parameters)
         self.add_pv_window.withdraw()
 
         # The dialog for adding input group parameters
         self.add_bulk_pv_window = Tkinter.Toplevel(self.parent)
-        self.add_bulk_pv_frame = AddBulkPv(self.add_bulk_pv_window)
+        self.add_bulk_pv_frame = AddBulkPv(self.add_bulk_pv_window, self.parameters)
         self.add_bulk_pv_window.withdraw()
 
         # The dialog for adding objective functions
@@ -181,7 +186,7 @@ class MainWindow(Tkinter.Frame):
 
         # The dialogs for showing the final results
         self.point_window = Tkinter.Toplevel(self.parent)
-        self.point_frame = PointDetails(self.point_window)
+        self.point_frame = PointDetails(self.point_window, self.parameters)
         self.point_window.withdraw()
 
         # dialog for final plot
@@ -372,7 +377,6 @@ class MainWindow(Tkinter.Frame):
     def show_add_obj_func_window(self):
         self.add_obj_func_window.deiconify()
 
-
     #next two functions remove Parameters and Objectives from list (if required)
     def remove_pv(self):
         iid = self.Tinput_params.selection()[0]
@@ -452,8 +456,6 @@ class MainWindow(Tkinter.Frame):
 
         print [i.list_iid for i in self.parameters.parameters]
 
-
-
     def save_config(self):
         """
         Saves a configuration that has been define don screen
@@ -473,10 +475,11 @@ class PointDetails(Tkinter.Frame):
     that are in Pickle format.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, parameters):
         print "INIT: Solution window"
         Tkinter.Frame.__init__(self, parent)
         self.parent = parent
+        self.parameters = parameters
         self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
         self.initUi()
 
@@ -486,17 +489,14 @@ class PointDetails(Tkinter.Frame):
         """
         self.parent.title("Point")
 
-
     def generateUi(self, ars, aps):
         """
         generates table that goes into GUI
         """
 
-        global signConverter
-
         ''' First, unpickle the mp_to_ap mapping file '''
 
-        mapping_file = open("{0}/ap_to_mp_mapping_file.txt".format(store_address))
+        mapping_file = open("{0}/ap_to_mp_mapping_file.txt".format(self.parameters.store_address))
         mp_to_ap_mapping = pickle.load(mapping_file)
         mapping_file.close()
 
@@ -539,20 +539,19 @@ class PointDetails(Tkinter.Frame):
         btn_reset.grid(row=3, column=1, sticky=Tkinter.W+Tkinter.E, pady=10)
 
         for i, ap in enumerate(aps):
-            tree_ap.insert('', 'end', text=parameters[i].ap_label, values=(ap))
+            tree_ap.insert('', 'end', text=self.parameters.parameters[i].ap_label, values=(ap))
 
         for i, ar in enumerate(ars):
-            tree_ar.insert('', 'end', text=results[i].ar_label, values=(signConverter[i]*ar))
+            tree_ar.insert('', 'end', text=self.parameters.results[i].ar_label, values=(self.parameters.signConverter[i]*ar))
 
         mp_labels = []
-        for mpgr in parameters:
+        for mpgr in self.parameters.parameters:
             for mpr in mpgr.mp_representations:
                 mp_labels.append(mpr.mp_label)
         for i, mp in enumerate(mps):
             tree_mp.insert('', 'end', text=mp_labels[i], values=(mp))
 
         self.parent.deiconify()
-
 
     def set_state(self):
         """
@@ -690,13 +689,14 @@ class AddPv(Tkinter.Frame):
     This class is for adding a SINGLE PARAMETER.
     """
 
-    def __init__(self, parent, main_window):
+    def __init__(self, parent, main_window, parameters):
         print "INIT: Single Parameter window"
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
         self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
         self.main_window = main_window
+        self.parameters = parameters
 
         self.initUi()
 
@@ -774,8 +774,8 @@ class AddPv(Tkinter.Frame):
             iid = self.main_window.Tinput_params.insert('', 'end', text=details[0], values=(details[1], details[2], details[3]))
 
             #define parameter object
-            mpgr = mp_group_representation()
-            mpr = mp_representation()
+            mpgr = config.mp_group_representation()
+            mpr = config.mp_representation()
             mpr.mp_obj = util.dls_param_var(details[0], float(details[3]))
             mpr.list_iid = iid
             mpr.mp_label = details[0]
@@ -795,11 +795,9 @@ class AddPv(Tkinter.Frame):
                 mpgr.ap_max = float(details[2])
 
             #parameter is stored as a group even though its a single parameter
-            parameters.append(mpgr)
+            self.parameters.parameters.append(mpgr)
 
             self.parent.withdraw()
-
-
 
     def x_button(self):
         print "Exited"
@@ -811,11 +809,12 @@ class AddBulkPv(Tkinter.Frame):
     This class is for adding a GROUP PARAMETER.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, parameters):
 
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
+        self.parameters = parameters
         self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
 
         self.initUi()
@@ -877,8 +876,6 @@ class AddBulkPv(Tkinter.Frame):
         self.b1 = Tkinter.Button(self.parent, text="Add", command=self.add_pvs)
         self.b1.grid(row=8, column=2, sticky=Tkinter.E+Tkinter.W)
 
-
-
     def browse_save_location(self):
         """
         This class is for reading a csv file with list of parameter PVs, which are then put into the column of parameter PVs in the 'Add Bulk Parameter PVs' window
@@ -906,8 +903,6 @@ class AddBulkPv(Tkinter.Frame):
                 return
 
             self.i0.insert(Tkinter.END, '{0}\n'.format(i))
-
-
 
     def add_pvs(self):
         """
@@ -976,9 +971,9 @@ class AddBulkPv(Tkinter.Frame):
         #now that we have good data, create object
         if good_data:
 
-            mpgr = mp_group_representation()
+            mpgr = config.mp_group_representation()
             for pv in processed_details[0]:
-                mpr = mp_representation()
+                mpr = config.mp_representation()
                 mpr.mp_obj = util.dls_param_var(pv, processed_details[5])
                 mpr.mp_label = pv
                 mpgr.mp_representations.append(mpr)
@@ -1022,10 +1017,9 @@ class AddBulkPv(Tkinter.Frame):
                 mpr.list_iid = iid
 
             mpgr.ap_label = self.i6.get()
-            parameters.append(mpgr)
+            self.parameters.parameters.append(mpgr)
 
-            add_bulk_pv_window.withdraw()
-
+            self.parent.withdraw()
 
     def x_button(self):
         print "Exited"
@@ -1037,9 +1031,9 @@ class StripPlot(Tkinter.Frame):
     This class produces the Striptool plot, which is not used by default
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, progress_frame):
 
-        Tkinter.Frame.__init__(self, parent, progress_frame)
+        Tkinter.Frame.__init__(self, parent)
         self.parent = parent
         self.progress_frame = progress_frame
         self.initUi()
@@ -1119,7 +1113,7 @@ class ShowProgress(Tkinter.Frame):
         self.pbar_progress.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
         #optional striptool feature (recommended to the user to be turned off (==0)
-        if Striptool_On == 1:
+        if self.parameters.Striptool_On == 1:
             self.strip_plot = StripPlot(self.parent)
             self.strip_plot.grid(row=2, column=0, columnspan=4)
 
@@ -1146,12 +1140,10 @@ class ShowProgress(Tkinter.Frame):
         """
         updates the percentage bar and plots using functions in the import_algo_prog_plot class in the chosen algorithm file
         """
-        global Striptool_On
-
         self.progress.set(normalised_percentage * 100)
         self.update()
 
-        if Striptool_On == 1:
+        if self.parameters.Striptool_On == 1:
             self.strip_plot.update()
 
         self.progress_plot.update()

@@ -2,14 +2,12 @@ from __future__ import division
 import math
 
 import pkg_resources
-from audioop import avg
 pkg_resources.require('cothread')
 
 from cothread.catools import caget, caput, ca_nothing
-from cothread.cadef import CAException
-import cothread
 
 number_of_bunches = None
+
 
 def define_number_of_bunches(new_number_of_bunches):
     global number_of_bunches

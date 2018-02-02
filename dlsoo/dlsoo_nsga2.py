@@ -89,7 +89,7 @@ class optimiser:
 
 
         if settings_dict['pmut'] == None:
-            settings_dict['pmut'] = 0.1 / param_count
+            settings_dict['pmut'] = 0.1 / self.param_count
 
         self.pmut = settings_dict['pmut']
 

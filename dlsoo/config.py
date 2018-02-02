@@ -7,9 +7,9 @@ class Parameters(object):
     interactor = None
     optimiser = None
     useMachine = False
+    # Sign converter converts algo params to machine params.
     signConverter = []
     Striptool_On = None
-    #Sign converter converts algo params to machine params. This is used in the plotting below.
 
     mr_to_ar_sign = []
     mp_addresses = []

@@ -10,8 +10,10 @@ def extractColumn(matrix, colnum):
         col.append(i[colnum])
     return col
 
+
 def mean(x):
     return sum(x)/len(x)
+
 
 def extractNumbers(string1):
     #takes in a list and extracts the numbers with : ; around them to then stor in a list.

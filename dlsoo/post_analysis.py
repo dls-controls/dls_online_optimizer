@@ -15,26 +15,19 @@ pkg_resources.require('matplotlib')
 pkg_resources.require('numpy')
 pkg_resources.require('scipy')
 
-import sys
 import Tkinter
 import ttk
 import tkFileDialog
 import tkMessageBox
 import os
-import time
-import datetime
 import imp
 import pickle
 import ast
 
-import numpy
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
-import matplotlib.cm as cm
 
-from . import plot, util
+from . import util
 
 store_address = None
 algorithm_name = ""

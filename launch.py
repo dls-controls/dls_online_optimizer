@@ -11,31 +11,13 @@ IMPORTANT KEY:
 
 '''
 from __future__ import division
-print 'Welcome to DLS-OnlineOptimiser'
-print 'Loading...'
-print 'Initialling setup windows...'
-
 import pkg_resources
-from audioop import avg
 pkg_resources.require('cothread')
 pkg_resources.require('matplotlib')
 pkg_resources.require('numpy')
 pkg_resources.require('scipy')
 
-import Tkinter
-import os
-import time
-import datetime
-import pickle
-import cothread
-
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
-import matplotlib.cm as cm
-
-from dlsoo import config, gui, util, usefulFunctions
+from dlsoo import config, gui
 
 
 OPTIMISERS = {
@@ -47,6 +29,9 @@ OPTIMISERS = {
 
 
 if __name__ == '__main__':
+    print 'Welcome to DLS-OnlineOptimiser'
+    print 'Loading...'
+    print 'Initialling setup windows...'
 
     parameters = config.Parameters()
 
