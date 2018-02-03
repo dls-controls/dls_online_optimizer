@@ -32,8 +32,11 @@ class InfoPopup(DialogBox):
         self.title(title)
 
     def create_body(self):
-        body = Tkinter.Frame()
+        body = Tkinter.Frame(self)
+        body.grid()
         label = ttk.Label(body, text=self._message)
+        label.grid(row=0, column=0)
         button = ttk.Button(body, text="OK", command=self.cancel)
+        button.grid(row=1, column=0)
         body.pack()
 

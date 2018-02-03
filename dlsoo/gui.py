@@ -616,11 +616,13 @@ class AlgorithmSettings(Tkinter.Frame):
             else:
                 interactorIdentity = 'SIMULATOR'
 
-            tkutil.InfoPopup(
-                self,
+            ip = tkutil.InfoPopup(
+                self.parent,
                 'READY?',
                 'You are using the ' + interactorIdentity + '. ' +
                         'Are you sure you wish to start optimisation?')
+
+            self.parent.wait_window(ip)
 
             mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
                     for mpgr in self.parameters.parameters]          #gather machine parameters
