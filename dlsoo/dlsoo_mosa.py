@@ -13,9 +13,8 @@ import scipy.stats as stats
 
 import Tkinter
 import ttk
-import tkMessageBox
 
-from dlsoo import plot
+from dlsoo import plot, tkutil
 from dlsoo.usefulFunctions import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
@@ -394,52 +393,42 @@ class import_algo_frame(Tkinter.Frame):
     def get_dict(self):
         #extracts the inputted settings to put in settings dictionary
         setup = {}
-        good_data = True
         try:
             setup['passInTempDrop'] = float(self.i2.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Temperture drops input incorrectly.')
-            good_data = False
+            raise ValueError('Temperature drops input incorrectly')
         try:
             setup['passOutTempDrop'] = float(self.i3.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Temperture drops input incorrectly.')
-            good_data = False
+            raise ValueError('Temperature drops input incorrectly')
         try:
             setup['noAneals'] = int(self.i4.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Number of anneals must be an integer.')
-            good_data = False
+            raise ValueError('Number of anneals must be an integer')
         try:
             setup['noIterations'] = int(self.i5.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Number of iterations must be an integer.')
-            good_data = False
+            raise ValueError('Number of iterations must be an integer')
         try:
             setup['failDropCount'] = int(self.i6.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Fail drop count must be an integer.')
-            good_data = False
+            raise ValueError('Fail drop count must be an integer')
         try:
             setup['objCallStop'] = int(self.i7.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Maximum number of measurements must be an integer.')
-            good_data = False
+            raise ValueError('Maximum number of measurements must be an integer')
         try:
             setup['anealPlot'] = int(self.i8.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'The number of aneals before plotting must be an integer.')
-            good_data = False
+            raise ValueError('The number of anneals before plotting must be an integer')
 
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
         elif self.add_current_to_individuals.get() == 1:
             setup['add_current_to_individuals'] = True
 
-        if good_data:
-            return setup
-        else:
-            return 'error'
+        return setup
+
 
 class import_algo_prog_plot(Tkinter.Frame):
 

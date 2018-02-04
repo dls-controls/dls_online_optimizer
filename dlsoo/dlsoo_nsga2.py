@@ -12,7 +12,6 @@ import os
 
 import Tkinter
 import ttk
-import tkMessageBox
 
 from dlsoo import plot
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -626,65 +625,49 @@ class import_algo_frame(Tkinter.Frame):
 
     def get_dict(self):
 
-        good_data = True
         setup = {}
 
         try:
             setup['pop_size'] = int(self.i0.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Population size\": \"{0}\", could not be converted to an int".format(self.i0.get()))
-            good_data = False
+            raise ValueError("The value for \"Population size\": \"{0}\", could not be converted to an int".format(self.i0.get()))
 
         try:
             setup['max_gen'] = int(self.i1.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Max. generations\": \"{0}\", could not be converted to an int".format(self.i1.get()))
-            good_data = False
+            raise ValueError("The value for \"Max. generations\": \"{0}\", could not be converted to an int".format(self.i1.get()))
 
         try:
             setup['pmut'] = float(self.i2.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Mutation probability\": \"{0}\", could not be converted to a float".format(self.i2.get()))
-            good_data = False
+            raise ValueError("The value for \"Mutation probability\": \"{0}\", could not be converted to a float".format(self.i2.get()))
 
         try:
             setup['pcross'] = float(self.i3.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Crossover probability\": \"{0}\", could not be converted to a float".format(self.i3.get()))
-            good_data = False
+            raise ValueError("The value for \"Crossover probability\": \"{0}\", could not be converted to a float".format(self.i3.get()))
 
         try:
             setup['eta_m'] = float(self.i4.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Eta_m\": \"{0}\", could not be converted to a float".format(self.i4.get()))
-            good_data = False
+            raise ValueError("The value for \"Eta_m\": \"{0}\", could not be converted to a float".format(self.i4.get()))
 
         try:
             setup['eta_c'] = float(self.i5.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Eta_c\": \"{0}\", could not be converted to a float".format(self.i5.get()))
-            good_data = False
+            raise ValueError("The value for \"Eta_c\": \"{0}\", could not be converted to a float".format(self.i5.get()))
 
         try:
             setup['seed'] = float(self.i6.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Seed\": \"{0}\", could not be converted to a float".format(self.i6.get()))
-            good_data = False
-
+            raise ValueError("The value for \"Seed\": \"{0}\", could not be converted to a float".format(self.i6.get()))
 
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
         elif self.add_current_to_individuals.get() == 1:
             setup['add_current_to_individuals'] = True
 
-        if good_data:
-            return setup
-        else:
-            return "error"
-
-
-
-
+        return setup
 
 
 class import_algo_prog_plot(Tkinter.Frame):

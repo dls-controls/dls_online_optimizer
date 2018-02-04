@@ -87,6 +87,7 @@ class Gui(object):
         # The main setup window
         self.main_window = MainWindow(self.root, optimisers, parameters)
         selector = TargetSelector(self.root)
+        selector.raise_to_top()
         self.root.wait_window(selector)
         self.parameters.useMachine = selector.machine_selected()
 
@@ -598,73 +599,70 @@ class AlgorithmSettings(Tkinter.Frame):
         collect data from algorithm settings window and start optimisation
         """
         #get user defined algorithm settings
-        algo_settings_dict = self.algo_frame.get_dict()
-
+        try:
+            algo_settings_dict = self.algo_frame.get_dict()
         #settings errors to ensure good data
-        if algo_settings_dict == "error":
-            tkMessageBox.showerror("Algorithm settings error", "There was an error in one or more of the settings given. The optimisation procedure will not proceed.")
-
+        except ValueError as ve:
+            tkutil.ErrorPopup(
+                self, "Algorithm settings error",
+                "{}.\n The optimisation procedure will not proceed.".format(ve))
         #show 'are you sure?' window
         else:
-            interactorIdentity = ''
 
             #machine interactor?
-            if self.parameters.useMachine:
-                interactorIdentity = 'MACHINE'
+            interactor = 'MACHINE' if self.parameters.useMachine else 'SIMULATOR'
 
-            #simulator interactor?
-            else:
-                interactorIdentity = 'SIMULATOR'
-
-            ip = tkutil.InfoPopup(
+            ready = tkutil.YesNoPopup.open(
                 self.parent,
                 'READY?',
-                'You are using the ' + interactorIdentity + '. ' +
+                'You are using the {}. '.format(interactor) +
                         'Are you sure you wish to start optimisation?')
 
-            self.parent.wait_window(ip)
+            if ready:
+                self.start()
 
-            mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
-                    for mpgr in self.parameters.parameters]          #gather machine parameters
-            mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
-            relative_settings = [mpgr.relative_setting for mpgr in
-                    self.parameters.parameters]                               #gather bounds for machine parameters
-            ap_min_var = [mpgr.ap_min for mpgr in self.parameters.parameters]                                                #gather minimum bounds for parameter parameters
-            ap_max_var = [mpgr.ap_max for mpgr in self.parameters.parameters]                                                #gather maximum bounds for parameter parameters
+    def start(self):
+        mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
+                for mpgr in self.parameters.parameters]          #gather machine parameters
+        mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
+        relative_settings = [mpgr.relative_setting for mpgr in
+                self.parameters.parameters]                               #gather bounds for machine parameters
+        ap_min_var = [mpgr.ap_min for mpgr in self.parameters.parameters]                                                #gather minimum bounds for parameter parameters
+        ap_max_var = [mpgr.ap_max for mpgr in self.parameters.parameters]                                                #gather maximum bounds for parameter parameters
 
-            #need a sign converter if any objectives are to be maximised (by default, algorithms minimise objectives)
-            for mrr in self.parameters.results:
-                if mrr.mr_to_ar_sign == '-':
-                    self.parameters.signConverter.append(-1)
-                else:
-                    self.parameters.signConverter.append(1)
-
-            #define the appropriate interactor depending on using machine or simulator
-            if self.parameters.useMachine:
-                self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
+        #need a sign converter if any objectives are to be maximised (by default, algorithms minimise objectives)
+        for mrr in self.parameters.results:
+            if mrr.mr_to_ar_sign == '-':
+                self.parameters.signConverter.append(-1)
             else:
-                self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
+                self.parameters.signConverter.append(1)
 
-            self.parameters.interactor.results = self.parameters.results
-            #save the interactor object to file (used in post_analysis file)
-            usefulFunctions.save_object(self.parameters.interactor,
-                    '{0}/interactor.txt'.format(self.parameters.store_address))
+        #define the appropriate interactor depending on using machine or simulator
+        if self.parameters.useMachine:
+            self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
+        else:
+            self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
 
-            #find out initial settings
-            initial_mp = self.parameters.interactor.get_mp()
+        self.parameters.interactor.results = self.parameters.results
+        #save the interactor object to file (used in post_analysis file)
+        usefulFunctions.save_object(self.parameters.interactor,
+                '{0}/interactor.txt'.format(self.parameters.store_address))
 
-            #initialise optimiser class in the algorithm file using settings dictionary among other arguments
-            self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
-                                                    interactor=self.parameters.interactor,
-                                                    store_location=self.parameters.store_address,
-                                                    a_min_var=ap_min_var,
-                                                    a_max_var=ap_max_var,
-                                                    progress_handler=self.progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
+        #find out initial settings
+        initial_mp = self.parameters.interactor.get_mp()
 
-            #withdraw all windows associated with the main window
-            self.parent.withdraw()
-            #NOW RUN THE OPTIMISATION (using function below)
-            self.main_window.run_optimisation()
+        #initialise optimiser class in the algorithm file using settings dictionary among other arguments
+        self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
+                                                interactor=self.parameters.interactor,
+                                                store_location=self.parameters.store_address,
+                                                a_min_var=ap_min_var,
+                                                a_max_var=ap_max_var,
+                                                progress_handler=self.progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
+
+        #withdraw all windows associated with the main window
+        self.parent.withdraw()
+        #NOW RUN THE OPTIMISATION (using function below)
+        self.main_window.run_optimisation()
 
 
 class AddPv(Tkinter.Frame):

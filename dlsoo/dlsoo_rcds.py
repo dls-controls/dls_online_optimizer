@@ -471,32 +471,26 @@ class import_algo_frame(Tkinter.Frame):
     def get_dict(self):
         #extracts the inputted settings to put in settings dictionary
         setup = {}
-        good_data = True
         try:
             setup['nOIterations'] = int(self.i2.get())
         except:
-            ttk.showerror('RCDS settings error', 'The value for number of iterations must be an integer.')
-            good_data = False
+            raise ValueError('The value for number of iterations must be an integer.')
         try:
             setup['tolerance'] = float(self.i3.get())
         except:
-            ttk.showerror('RCDS settings error', 'The finishing tolerance must be a number.')
-            good_data = False
+            raise ValueError('The finishing tolerance must be a number.')
         try:
             setup['objCallStop'] = int(self.i4.get())
         except:
-            ttk.showerror('RCDS settings error', 'The maximum number of measurements must be an integer.')
-            good_data = False
+            raise ValueError('The maximum number of measurements must be an integer.')
         try:
             setup['initStep'] = float(self.i5.get())
         except:
-            ttk.showerror('RCDS settings error', 'The initial step must be a number.')
-            good_data = False
+            raise ValueError('The initial step must be a number.')
         try:
             setup['numTestPoints'] = int(self.i6.get())
         except:
-            ttk.showerror('RCDS settings error', 'The number of test points must be an integer.')
-            good_data = False
+            raise ValueError('The number of test points must be an integer.')
         setup['searchDirections'] = []
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
@@ -505,10 +499,7 @@ class import_algo_frame(Tkinter.Frame):
         if self.dirsGiven:
             for i in range(int(self.i7.get())):
                 setup['searchDirections'].append(list(extractNumbers(self.dirInputs[i].get())))
-        if good_data:
-            return setup
-        else:
-            return 'error'
+        return setup
 
     def askNum(self):
         Tkinter.Label(self, text='Number of directions to add:').grid(row=12, column=0, sticky=Tkinter.E)

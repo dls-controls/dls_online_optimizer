@@ -560,49 +560,36 @@ class import_algo_frame(Tkinter.Frame):
         """
         Upon clicking OK, errors are lifted if any settings don't work
         """
-
-        good_data = True
         setup = {}
 
         try:
             setup['swarm_size'] = int(self.i0.get())
         except:
-            tkMessageBox.showerror("MOPSO settings error", "The value for \"Swarm Size\": \"{0}\", could not be converted to an int".format(self.i0.get()))
-            good_data = False
-
+            raise ValueError("The value for \"Swarm Size\": \"{0}\", could not be converted to an int".format(self.i0.get()))
         try:
             setup['max_iter'] = int(self.i1.get())
         except:
-            tkMessageBox.showerror("MOPSO settings error", "The value for \"Max. Iterations\": \"{0}\", could not be converted to an int".format(self.i1.get()))
-            good_data = False
-
+            raise ValueError("The value for \"Max. Iterations\": \"{0}\", could not be converted to an int".format(self.i1.get()))
         try:
             setup['inertia'] = float(self.i2.get())
         except:
-            tkMessageBox.showerror("MOPSO settings error", "The value for \"Particle Inertia\": \"{0}\", could not be converted to a float".format(self.i2.get()))
-            good_data = False
-
+            raise ValueError("The value for \"Particle Inertia\": \"{0}\", could not be converted to a float".format(self.i2.get()))
         try:
             setup['social_param'] = float(self.i3.get())
         except:
-            tkMessageBox.showerror("MOPSO settings error", "The value for \"Social Parameter\": \"{0}\", could not be converted to a float".format(self.i3.get()))
-            good_data = False
-
+            raise ValueError("The value for \"Social Parameter\": \"{0}\", could not be converted to a float".format(self.i3.get()))
         try:
             setup['cognitive_param'] = float(self.i4.get())
         except:
-            tkMessageBox.showerror("MOPSO settings error", "The value for \"Cognitive Parameter\": \"{0}\", could not be converted to a float".format(self.i4.get()))
-            good_data = False
+            raise ValueError("The value for \"Cognitive Parameter\": \"{0}\", could not be converted to a float".format(self.i4.get()))
 
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
         elif self.add_current_to_individuals.get() == 1:
             setup['add_current_to_individuals'] = True
 
-        if good_data:
-            return setup
-        else:
-            return "error"
+        return setup
+
 
 #---------------------------------------------------------- CLASS FOR PROGRESS WINDOW ---------------------------------------------------------------#
 
