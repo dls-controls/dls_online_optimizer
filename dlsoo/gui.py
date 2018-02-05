@@ -600,7 +600,7 @@ class AlgorithmSettings(Tkinter.Frame):
         """
         #get user defined algorithm settings
         try:
-            algo_settings_dict = self.algo_frame.get_dict()
+            algo_settings = self.algo_frame.get_dict()
         #settings errors to ensure good data
         except ValueError as ve:
             tkutil.ErrorPopup(
@@ -619,9 +619,9 @@ class AlgorithmSettings(Tkinter.Frame):
                         'Are you sure you wish to start optimisation?')
 
             if ready:
-                self.start()
+                self.start(algo_settings)
 
-    def start(self):
+    def start(self, algo_settings):
         mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
                 for mpgr in self.parameters.parameters]          #gather machine parameters
         mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
@@ -652,7 +652,7 @@ class AlgorithmSettings(Tkinter.Frame):
         initial_mp = self.parameters.interactor.get_mp()
 
         #initialise optimiser class in the algorithm file using settings dictionary among other arguments
-        self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings_dict,
+        self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings,
                                                 interactor=self.parameters.interactor,
                                                 store_location=self.parameters.store_address,
                                                 a_min_var=ap_min_var,
