@@ -80,3 +80,5 @@ class MrRepresentation(object):
         self.mr_to_ar_sign = None
         self.max_min_text = None
         self.max_min_sign = None
+        self.inj_setting = None
+        self.inj_setting_text = None

@@ -32,42 +32,6 @@ def save_details_files(start_time, end_time, store_address, optimiser,
         f.write("Start time: {0}-{1}-{2} {3}:{4}:{5}\n".format(start_time.year, start_time.month, start_time.day, start_time.hour, start_time.minute, start_time.second))
         f.write("End time: {0}-{1}-{2} {3}:{4}:{5}\n".format(end_time.year, end_time.month, end_time.day, end_time.hour, end_time.minute, end_time.second))
 
-#The two classes below are for simulated interaction and machine interaction respectively.
-
-class modified_interactor1(util.sim_machine_interactor_bulk_base):
-    """
-    This interactor is the for a simulation
-    """
-    def mr_to_ar(self, mrs):
-        #converts a set of machine results to algorithm results
-        ars = []
-
-        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in self.results]
-        for mr, sign in zip(mrs, mr_to_ar_sign):
-            if sign == '+':
-                ars.append(mr)
-            elif sign == '-':
-                ars.append(-mr)
-
-        return ars
-
-class modified_interactor2(util.dls_machine_interactor_bulk_base):
-    """
-    This interactor is the for using the machine
-    """
-    def mr_to_ar(self, mrs):
-        #converts a set of machine results to algorithm results
-        ars = []
-
-        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in self.results]
-        for mr, sign in zip(mrs, mr_to_ar_sign):
-            if sign == '+':
-                ars.append(mr)
-            elif sign == '-':
-                ars.append(-mr)
-
-        return ars
-
 
 class Gui(object):
 
@@ -638,12 +602,16 @@ class AlgorithmSettings(Tkinter.Frame):
                 self.parameters.signConverter.append(1)
 
         #define the appropriate interactor depending on using machine or simulator
-        if self.parameters.useMachine:
-            self.parameters.interactor = modified_interactor2(mp_addresses, mr_addresses, set_relative=relative_settings)
-        else:
-            self.parameters.interactor = modified_interactor1(mp_addresses, mr_addresses, set_relative=relative_settings)
+        interactor_class = (util.dls_machine_interactor_bulk_base
+                            if self.parameters.useMachine
+                            else util.sim_machine_interactor_bulk_base)
+        self.parameters.interactor = interactor_class(
+            mp_addresses,
+            mr_addresses,
+            set_relative=relative_settings,
+            results=self.parameters.results
+        )
 
-        self.parameters.interactor.results = self.parameters.results
         #save the interactor object to file (used in post_analysis file)
         usefulFunctions.save_object(self.parameters.interactor,
                 '{0}/interactor.txt'.format(self.parameters.store_address))
