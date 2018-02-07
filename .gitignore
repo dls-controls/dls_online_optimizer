@@ -4,3 +4,9 @@
 
 # Compiled Python
 *.pyc
+
+# Virtualenvs
+venv/
+
+# PyCharm
+.idea/
