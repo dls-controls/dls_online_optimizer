@@ -24,7 +24,15 @@ import ca_abstraction_mapping
 from cothread.catools import caget, caput
 import cothread
 
-#---------------------------------------------------------IMPORTANT FUNCTIONS-----------------------------------------------#
+
+def update_beam_current_bounds(I_min, I_max):
+     """
+     This is for the lifetime proxy. We beleive the equation for the proxy will only hold (i.e. independant with current)
+     for a certain range.
+     """
+     global beam_current_bounds
+     beam_current_bounds = [I_min, I_max]
+     print 'BEAM CURRENT BOUNDS ARE ',beam_current_bounds
 
 def abstract_caget(pv):
     """
@@ -623,15 +631,14 @@ class sim_machine_interactor_bulk_base:
 
 # the remaining classes/functions are not used in injection that often and are not important in understanding how the file works.
 
-
 class dls_machine_interactor_bulk_base_inj_control:
 
-    def __init__(self, param_var_groups=None, measurement_vars_noinj=None, measurement_vars_inj=None, set_relative=None):
+    def __init__(self, param_var_groups=None, measurement_vars_noinj=None,
+                 measurement_vars_inj=None, set_relative=None):
 
         self.param_var_groups = param_var_groups
         self.measurement_vars_noinj = measurement_vars_noinj
         self.measurement_vars_inj = measurement_vars_inj
-
 
         self.param_vars = []
         for group in self.param_var_groups:
@@ -649,10 +656,8 @@ class dls_machine_interactor_bulk_base_inj_control:
             self.initial_values = self.get_mp()
             self.set_relative = set_relative
 
-
         ''' We create a dictionary to store the input ap keys, with the output mp values '''
         self.ap_to_mp_store = {}
-
 
     def save_details_file(self):
         return save_details_file(self)
@@ -682,7 +687,6 @@ class dls_machine_interactor_bulk_base_inj_control:
 
         ''' Store this mapping in the ap_to_mp_store dictionary '''
         self.ap_to_mp_store[tuple(aps)] = tuple(mps)
-        #print self.ap_to_mp_store
 
         return mps
 
@@ -701,13 +705,11 @@ class dls_machine_interactor_bulk_base_inj_control:
             for nparam, param in enumerate(group):
                 mpsindex += 1
 
-
         print "mps: {0}".format(mps)
         print "aps: {0}".format(aps)
         print "initial values: {0}".format(self.initial_values)
 
         return aps
-
 
     def mr_to_ar(self, mrs):
         return mrs
@@ -722,68 +724,39 @@ class dls_machine_interactor_bulk_base_inj_control:
 
         return mps
 
-    # This should be the only method we need to modify for injection control
+    # -------------------------- MOST IMPORTANT FUNCTION IN CLASS FOR INJECTION CONTROL ----------------------#
+
     def get_mr(self):
-        #mrs = measure_results(self.measurement_vars, model.abstract_caget)
-
-        average_inj = [0] * len(self.measurement_vars_inj)
-        counts_inj = [0] * len(self.measurement_vars_inj)
-        dev_inj = [0] * len(self.measurement_vars_inj)
-
-        average_noinj = [0] * len(self.measurement_vars_noinj)
-        counts_noinj = [0] * len(self.measurement_vars_noinj)
-        dev_noinj = [0] * len(self.measurement_vars_noinj)
-
-        ''' Final ones '''
-        #average = [0] * len(measurement_vars)
-        #counts = [0] * len(measurement_vars)
-        #dev = [0] * len(measurement_vars)
-
+        global beam_current_bounds
         get_command = abstract_caget
-
-        run = True
-        start_time = time.time()
+        beam_current_max_warning = False
 
         ''' First measure the injection results '''
         # Begin injecting
         print "Start injection"
-        #caput('LI-TI-MTGEN-01:START', 1)
+        caput('LI-TI-MTGEN-01:START', 1)
         cothread.Sleep(0.1)
-        #caput('LI-TI-MTGEN-01:START', 0)
-        cothread.Sleep(1)
+        caput('LI-TI-MTGEN-01:START', 0)
+        cothread.Sleep(4.0)
+
+        beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
+        while beam_current < beam_current_bounds[0]:
+            print 'waiting for beam current to rise above ', \
+            beam_current_bounds[0]
+            cothread.Sleep(1)
+            beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
+            print '...'
 
         run = True
         start_time = time.time()
 
-        while run:
-            # Check whether to make any measurements
-            for i in range(len(self.measurement_vars_inj)):
-                # If the time since start is > the measurement delay * number of times its been counted, then
-                if (time.time() - start_time) > (self.measurement_vars_inj[i].delay * counts_inj[i]):
-                    print "Measuring {0}".format(self.measurement_vars_inj[i].pv)
-                    value = get_command(self.measurement_vars_inj[i].pv)
-                    average_inj[i] += value
-                    counts_inj[i] += 1
-                    dev_inj[i] += value ** 2
-
-            # Check if finished
-            run = False
-            for i in range(len(self.measurement_vars_inj)):
-                # If the number counted is less than that required, then carry on, else you can stop
-                if counts_inj[i] < self.measurement_vars_inj[i].min_counts:
-                    run = True
-
-        average_inj = [average_inj[i]/counts_inj[i] for i in range(len(average_inj))]
-        dev_inj = [(dev_inj[i]/counts_inj[i]) - average_inj[i]**2 for i in range(len(average_inj))]
-        err_inj = [(dev_inj[i])/(math.sqrt(counts_inj[i])) for i in range(len(average_inj))]
-
-        # Return results back to the optimiser
-        #return average We would previously just return the number. Now we will return a measurement object
-        results_inj = []
-        for i in range(len(average_inj)):
-            results_inj.append(measurement(mean=average_inj[i], counts=counts_inj[i], dev=dev_inj[i], err=err_inj[i]))
+        mrs_inj = measure_results(self.measurement_vars_inj, abstract_caget)
 
         ''' Now for the non-injection measurements '''
+
+        if get_command('SR-DI-DCCT-01:SIGNAL') > beam_current_bounds[1]:
+            beam_current_max_warning = True
+
         # Stop injection
         print "Stop injection"
         caput('LI-TI-MTGEN-01:STOP', 1)
@@ -791,47 +764,18 @@ class dls_machine_interactor_bulk_base_inj_control:
         caput('LI-TI-MTGEN-01:STOP', 0)
         cothread.Sleep(1)
 
-
-        run = True
-        start_time = time.time()
-
-        while run:
-            # Check whether to make any measurements
-            for i in range(len(self.measurement_vars_noinj)):
-                # If the time since start is > the measurement delay * number of times its been counted, then
-                if (time.time() - start_time) > (self.measurement_vars_noinj[i].delay * counts_noinj[i]):
-                    print "Measuring {0}".format(self.measurement_vars_noinj[i].pv)
-                    value = get_command(self.measurement_vars_noinj[i].pv)
-                    average_noinj[i] += value
-                    counts_noinj[i] += 1
-                    dev_noinj[i] += value ** 2
-
-            # Check if finished
-            run = False
-            for i in range(len(self.measurement_vars_noinj)):
-                # If the number counted is less than that required, then carry on, else you can stop
-                if counts_noinj[i] < self.measurement_vars_noinj[i].min_counts:
-                    run = True
-
-        average_noinj = [average_noinj[i]/counts_noinj[i] for i in range(len(average_noinj))]
-        dev_noinj = [(dev_noinj[i]/counts_noinj[i]) - average_noinj[i]**2 for i in range(len(average_noinj))]
-        err_noinj = [(dev_noinj[i])/(math.sqrt(counts_noinj[i])) for i in range(len(average_noinj))]
-
-        # Return results back to the optimiser
-        #return average We would previously just return the number. Now we will return a measurement object
-        results_noinj = []
-        for i in range(len(average_noinj)):
-            results_noinj.append(measurement(mean=average_noinj[i], counts=counts_noinj[i], dev=dev_noinj[i], err=err_noinj[i]))
-
-
+        mrs_noinj = measure_results(self.measurement_vars_noinj,
+                                    abstract_caget)
 
         ''' Now combine the results into a single list '''
 
-        results = results_noinj + results_inj
+        results = mrs_noinj + mrs_inj
 
         mrs = results
 
-        return mrs
+        return mrs, beam_current_max_warning
+
+    # -----------------------------------------------------------------------
 
     def set_ap(self, aps):
         mps = self.ap_to_mp(aps)
@@ -843,9 +787,9 @@ class dls_machine_interactor_bulk_base_inj_control:
         return aps
 
     def get_ar(self):
-        mrs = self.get_mr()
+        mrs, beam_current_warnings = self.get_mr()
         ars = self.mr_to_ar(mrs)
-        return ars
+        return ars, beam_current_warnings
 
     def find_a_bounds(self, param_var_min, param_var_max):
 
@@ -860,8 +804,10 @@ class dls_machine_interactor_bulk_base_inj_control:
                 max = None
 
                 for param in group:
-                    amount_above = param_var_max[mpsindex] - self.initial_values[mpsindex]
-                    amount_below = param_var_min[mpsindex] - self.initial_values[mpsindex]
+                    amount_above = param_var_max[mpsindex] - \
+                                   self.initial_values[mpsindex]
+                    amount_below = param_var_min[mpsindex] - \
+                                   self.initial_values[mpsindex]
 
                     if min != None:
                         if amount_below > min:
@@ -895,7 +841,6 @@ class dls_machine_interactor_bulk_base_inj_control:
                         max = param_var_max[mpsindex]
 
                     mpsindex += 1
-
 
             min_bounds.append(min)
             max_bounds.append(max)

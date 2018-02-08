@@ -13,7 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 
 import cothread
-from . import config, plot, tkutil, util, usefulFunctions
+from . import ca_abstraction_mapping, config, plot, tkutil, util, usefulFunctions
 
 
 def save_details_files(start_time, end_time, store_address, optimiser,
@@ -117,6 +117,11 @@ class MainWindow(Tkinter.Frame):
                 self.parameters.results)
         self.add_obj_func_window.withdraw()
 
+        # The dialog for changing lifetime options
+        self.add_lifetime_window = Tkinter.Toplevel(self.parent)
+        self.add_lifetime_frame = AddLifetime(self.add_lifetime_window, self)
+        self.add_lifetime_window.withdraw()
+
         # The dialog showing calculation progress
         self.progress_window = Tkinter.Toplevel(self.parent)
         self.progress_frame = ShowProgress(self.progress_window,
@@ -163,13 +168,15 @@ class MainWindow(Tkinter.Frame):
         self.Tinput_params.grid(row=0, column=0, columnspan=3)
 
         #OBJECTIVE COLUMNS
-        self.Toutput_params = ttk.Treeview(self.parent, columns=("counts", "delay", "maxmin"))
+        self.Toutput_params = ttk.Treeview(self.parent, columns=("counts", "delay", "maxmin", "inj"))
         self.Toutput_params.column("counts", width=120)
         self.Toutput_params.heading("counts", text="Min. Counts")
         self.Toutput_params.column("delay", width=120)
         self.Toutput_params.heading("delay", text="Delay /s")
         self.Toutput_params.column("maxmin", width=80)
         self.Toutput_params.heading("maxmin", text="Target")
+        self.Toutput_params.column("inj", width=120)
+        self.Toutput_params.heading("inj", text="Injection Settings")
         self.Toutput_params.grid(row=0, column=3, columnspan=3)
 
         #ADD PARAMETER BUTTONS
@@ -182,7 +189,9 @@ class MainWindow(Tkinter.Frame):
 
         #ADD OBJECTIVE BUTTONS
         self.btn_output_params_add = Tkinter.Button(self.parent, text="Add", command=self.show_add_obj_func_window)
-        self.btn_output_params_add.grid(row=1, column=3, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+        self.btn_output_params_add.grid(row=1, column=3, rowspan=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+        self.lifetime_add = Tkinter.Button(self.parent, text="Add Lifetime", command=self.show_add_lifetime_window)
+        self.lifetime_add.grid(row=2, column=3, rowspan=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.btn_output_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_obj)
         self.btn_output_params_rmv.grid(row=1, column=5, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
@@ -239,7 +248,6 @@ class MainWindow(Tkinter.Frame):
         cothread.Spawn(self.optimiserThreadMethod)
 
     def optimiserThreadMethod(self):
-        print('got here!')
         global final_plot_frame
 
         self.parameters.initial_measurements = self.parameters.interactor.get_mr()
@@ -324,6 +332,9 @@ class MainWindow(Tkinter.Frame):
     def show_add_obj_func_window(self):
         self.add_obj_func_window.deiconify()
 
+    def show_add_lifetime_window(self):
+        self.add_lifetime_window.deiconify()
+
     #next two functions remove Parameters and Objectives from list (if required)
     def remove_pv(self):
         iid = self.Tinput_params.selection()[0]
@@ -398,7 +409,7 @@ class MainWindow(Tkinter.Frame):
 
         for mrr in self.parameters.results:
 
-            iid = self.Toutput_params.insert('', 'end', text=mrr.mr_label, values=(mrr.mr_obj.min_counts, mrr.mr_obj.delay, mrr.max_min_text))
+            iid = self.Toutput_params.insert('', 'end', text=mrr.mr_label, values=(mrr.mr_obj.min_counts, mrr.mr_obj.delay, mrr.max_min_text, mrr.inj_setting_text))
             mrr.list_iid = iid
 
         print [i.list_iid for i in self.parameters.parameters]
@@ -1138,6 +1149,129 @@ class PlotProgress(Tkinter.Frame):
         self.canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
 
+#This class is new for injection_control: It allows the user to add a lifetime proxy as an objective. For more information, see the User manual + Report
+class AddLifetime(Tkinter.Frame):
+    """
+    This class is for adding LIFETIME PROXY as an objective
+    """
+
+    def __init__(self, parent, main_window):
+        print "INIT: Lifetime proxy window"
+        Tkinter.Frame.__init__(self, parent)
+
+        self.parent = parent
+        self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+        self.main_window = main_window
+
+        self.initUi()
+
+    def initUi(self):
+        """
+        Generate 'Add Lifetime PV' GUI
+        """
+
+        self.parent.title("Add Lifetime PV")
+        self.max_min_setting = Tkinter.IntVar()
+        self.max_min_setting.set(1)                     #this setting is for choosing whether objective will maximised or minimised
+
+        self.inj_setting = Tkinter.IntVar()
+        self.inj_setting.set(0)                         #0 means don't inject, 1 means inject
+
+        Tkinter.Label(self.parent, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
+        self.i0 = Tkinter.Entry(self.parent)
+        self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+        self.i0.insert(0, 'lifetime_proxy')
+        self.i0['state'] = 'disabled'                   #the PV address must be 'lifetime_proxy'
+
+        Tkinter.Label(self.parent, text="Min. count:").grid(row=1, column=0, sticky=Tkinter.E)
+        self.i1 = Tkinter.Entry(self.parent)
+        self.i1.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+
+        Tkinter.Label(self.parent, text="Delay /s:").grid(row=2, column=0, sticky=Tkinter.E)
+        self.i2 = Tkinter.Entry(self.parent)
+        self.i2.grid(row=2, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+
+        self.r0 = Tkinter.Radiobutton(self.parent, text="Minimise", variable=self.max_min_setting, value=0)
+        self.r0.grid(row = 3, column=0, sticky=Tkinter.W)
+        self.r1 = Tkinter.Radiobutton(self.parent, text="Maximise", variable=self.max_min_setting, value=1)
+        self.r1.grid(row = 3, column=1, sticky=Tkinter.W)
+
+        self.r2 = Tkinter.Radiobutton(self.parent, text="Non-injection", variable = self.inj_setting, value=0)
+        self.r2.grid(row=4, column=0, sticky=Tkinter.W)
+
+        self.r3 = Tkinter.Radiobutton(self.parent, text="Injection", variable = self.inj_setting, value=1)
+        self.r3.grid(row=4, column=1, sticky=Tkinter.W)
+
+        ttk.Separator(self.parent, orient='horizontal').grid(row=5, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+
+        """ The user must also define the number of bunches as well as min/max beam current for the proxy equation to hold """
+
+        Tkinter.Label(self.parent, text="Number of bunches:").grid(row=6, column=0, sticky=Tkinter.E)
+        self.i4 = Tkinter.Entry(self.parent)
+        self.i4.grid(row=6, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+
+        Tkinter.Label(self.parent, text="Min. Beam Current (mA):").grid(row=7, column=0, sticky=Tkinter.E)
+        self.i5 = Tkinter.Entry(self.parent)
+        self.i5.grid(row=7, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+
+        Tkinter.Label(self.parent, text="Max. Beam Current (mA)").grid(row=8, column=0, sticky=Tkinter.E)
+        self.i6 = Tkinter.Entry(self.parent)
+        self.i6.grid(row=8, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+
+        self.b1 = Tkinter.Button(self.parent, text="Cancel", command=self.parent.withdraw)
+        self.b1.grid(row=9, column=1, sticky=Tkinter.E+Tkinter.W)
+        self.b2 = Tkinter.Button(self.parent, text="OK", command=self.add_pv_to_list)
+        self.b2.grid(row=9, column=2, sticky=Tkinter.E+Tkinter.W)
+
+    def add_pv_to_list(self):
+        """
+        Once objective has been defined, create object for the objective
+        """
+        #create object
+        mrr = config.MrRepresentation()
+
+        #retrieve information from GUI
+        mrr.mr_obj = util.dls_measurement_var(self.i0.get(), float(self.i1.get()), float(self.i2.get()))
+
+        #max/min settings
+        if self.max_min_setting.get() == 0:
+            mrr.max_min_text = "Minimise"
+            mrr.max_min_sign = "+"
+            mrr.mr_to_ar_sign = "+"
+        elif self.max_min_setting.get() == 1:
+            mrr.max_min_text = "Maximise"
+            mrr.max_min_sign = "-"
+            mrr.mr_to_ar_sign = "-"
+
+        #injection/non-injection settings
+        mrr.inj_setting =  self.inj_setting.get()
+        if self.inj_setting.get() == 0:
+            mrr.inj_setting_text = "Non-injection"
+        elif self.inj_setting.get() == 1:
+            mrr.inj_setting_text = "Injection"
+        print('got here!')
+
+        iid = self.main_window.Toutput_params.insert('', 'end', text=self.i0.get(), values=(self.i1.get(), self.i2.get(), mrr.max_min_text, mrr.inj_setting_text))
+        mrr.list_iid = iid
+        mrr.mr_label = self.i0.get()
+        mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
+
+        self.main_window.parameters.results.append(mrr)
+
+        #now retrieve and set beam dynamics using ca_abstraction_mapping.py
+        number_of_bunches = self.i4.get()
+        beam_current_min = self.i5.get()
+        beam_current_max = self.i6.get()
+
+        ca_abstraction_mapping.define_number_of_bunches(float(number_of_bunches))
+        util.update_beam_current_bounds(float(beam_current_min), float(beam_current_max))
+        self.parent.withdraw()
+
+    def x_button(self):
+        print "Exited"
+        self.parent.withdraw()
+
+
 class AddObjFunc(Tkinter.Frame):
     """
     This class is for adding a OBJECTIVES.
@@ -1163,27 +1297,48 @@ class AddObjFunc(Tkinter.Frame):
         self.max_min_setting = Tkinter.IntVar()
         self.max_min_setting.set(0)                 #this setting is for choosing whether objective will maximised or minimised
 
-        Tkinter.Label(self.parent, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
+        self.inj_setting = Tkinter.IntVar()
+        self.inj_setting.set(0)  # 0 means don't inject, 1 means inject
+
+        Tkinter.Label(self.parent, text="PV address:").grid(row=0, column=0,
+                                                            sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self.parent)
-        self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+        self.i0.grid(row=0, column=1, columnspan=2,
+                     sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Min. count:").grid(row=1, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.parent, text="Min. count:").grid(row=1, column=0,
+                                                            sticky=Tkinter.E)
         self.i1 = Tkinter.Entry(self.parent)
-        self.i1.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+        self.i1.grid(row=1, column=1, columnspan=2,
+                     sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Delay /s:").grid(row=2, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.parent, text="Delay /s:").grid(row=2, column=0,
+                                                          sticky=Tkinter.E)
         self.i2 = Tkinter.Entry(self.parent)
-        self.i2.grid(row=2, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
+        self.i2.grid(row=2, column=1, columnspan=2,
+                     sticky=Tkinter.E + Tkinter.W)
 
-        self.r0 = Tkinter.Radiobutton(self.parent, text="Minimise", variable=self.max_min_setting, value=0)
-        self.r0.grid(row = 3, column=0, sticky=Tkinter.W)
-        self.r1 = Tkinter.Radiobutton(self.parent, text="Maximise", variable=self.max_min_setting, value=1)
-        self.r1.grid(row = 3, column=1, sticky=Tkinter.W)
+        self.r0 = Tkinter.Radiobutton(self.parent, text="Minimise",
+                                      variable=self.max_min_setting, value=0)
+        self.r0.grid(row=3, column=0, sticky=Tkinter.W)
+        self.r1 = Tkinter.Radiobutton(self.parent, text="Maximise",
+                                      variable=self.max_min_setting, value=1)
+        self.r1.grid(row=3, column=1, sticky=Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.parent, text="Cancel", command=self.parent.withdraw)
-        self.b1.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
-        self.b2 = Tkinter.Button(self.parent, text="OK", command=self.add_pv_to_list)
-        self.b2.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
+        self.r2 = Tkinter.Radiobutton(self.parent, text="Non-injection",
+                                      variable=self.inj_setting, value=0)
+        self.r2.grid(row=4, column=0, sticky=Tkinter.W)
+
+        self.r3 = Tkinter.Radiobutton(self.parent, text="Injection",
+                                      variable=self.inj_setting, value=1)
+        self.r3.grid(row=4, column=1, sticky=Tkinter.W)
+
+        self.b1 = Tkinter.Button(self.parent, text="Cancel",
+                                 command=self.parent.withdraw)
+        self.b1.grid(row=5, column=1, sticky=Tkinter.E + Tkinter.W)
+        self.b2 = Tkinter.Button(self.parent, text="OK",
+                                 command=self.add_pv_to_list)
+        self.b2.grid(row=5, column=2, sticky=Tkinter.E + Tkinter.W)
 
 
     def add_pv_to_list(self):
@@ -1193,10 +1348,12 @@ class AddObjFunc(Tkinter.Frame):
         #create object
         mrr = config.MrRepresentation()
 
-        #retrieve information from GUI
-        mrr.mr_obj = util.dls_measurement_var(self.i0.get(), float(self.i1.get()), float(self.i2.get()))
+        # retrieve information from GUI
+        mrr.mr_obj = util.dls_measurement_var(self.i0.get(),
+                                              float(self.i1.get()),
+                                              float(self.i2.get()))
 
-        #max/min settings
+        # max/min settings
         if self.max_min_setting.get() == 0:
             mrr.max_min_text = "Minimise"
             mrr.max_min_sign = "+"
@@ -1206,14 +1363,25 @@ class AddObjFunc(Tkinter.Frame):
             mrr.max_min_sign = "-"
             mrr.mr_to_ar_sign = "-"
 
-        #injection/non-injection settings
-        iid = self.main_window.Toutput_params.insert('', 'end', text=self.i0.get(), values=(self.i1.get(), self.i2.get(), mrr.max_min_text))
+        # injection/non-injection settings
+        mrr.inj_setting = self.inj_setting.get()
+        if self.inj_setting.get() == 0:
+            mrr.inj_setting_text = "Non-injection"
+        elif self.inj_setting.get() == 1:
+            mrr.inj_setting_text = "Injection"
+
+        iid = self.main_window.Toutput_params.insert('', 'end',
+                                                    text=self.i0.get(),
+                                                    values=(self.i1.get(),
+                                                            self.i2.get(),
+                                                            mrr.max_min_text,
+                                                            mrr.inj_setting_text))
         mrr.list_iid = iid
         mrr.mr_label = self.i0.get()
-        mrr.ar_label = self.i0.get()
+        mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
 
-        self.results.append(mrr)
-        self.main_window.add_obj_func_window.withdraw()
+        self.main_window.parameters.results.append(mrr)
+        self.parent.withdraw()
 
     def x_button(self):
         print "Exited"
