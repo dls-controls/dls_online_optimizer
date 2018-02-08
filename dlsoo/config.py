@@ -1,6 +1,20 @@
 import os
 
 
+class DlsParamVar:
+    def __init__(self, pv, delay):
+        self.pv = pv
+        self.delay = delay
+        self.initial_setting = None
+
+
+class DlsMeasurementVar:
+    def __init__(self, pv, min_counts, delay):
+        self.pv = pv
+        self.min_counts = min_counts
+        self.delay = delay
+
+
 class Parameters(object):
     keepUpdating = True
     initial_settings = None

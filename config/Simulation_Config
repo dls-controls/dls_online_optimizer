@@ -16,8 +16,8 @@ Rp7
 (dp8
 S'mr_obj'
 p9
-(idlsoo.util
-dls_measurement_var
+(idlsoo.config
+DlsMeasurementVar
 p10
 (dp11
 S'delay'
@@ -67,8 +67,8 @@ Ntp30
 Rp31
 (dp32
 g9
-(idlsoo.util
-dls_measurement_var
+(idlsoo.config
+DlsMeasurementVar
 p33
 (dp34
 g12
@@ -137,8 +137,8 @@ p56
 g48
 sS'mp_obj'
 p57
-(idlsoo.util
-dls_param_var
+(idlsoo.config
+DlsParamVar
 p58
 (dp59
 g12
@@ -179,8 +179,8 @@ p70
 sg56
 g65
 sg57
-(idlsoo.util
-dls_param_var
+(idlsoo.config
+DlsParamVar
 p71
 (dp72
 g12
@@ -219,8 +219,8 @@ p81
 sg56
 g76
 sg57
-(idlsoo.util
-dls_param_var
+(idlsoo.config
+DlsParamVar
 p82
 (dp83
 g12

@@ -81,7 +81,7 @@ class MainWindow(Tkinter.Frame):
         self.i_save_address.insert(0, store_directory)
         store_address = store_directory
 
-        #algo_details.txt should start with the optimiser file name. This is read and stored.
+        #algo_details.txt should start with the Optimiser file name. This is read and stored.
         if os.path.isfile('{0}/algo_details.txt'.format(store_address)):
             algo_details = open('{0}/algo_details.txt'.format(store_address), 'r')
             data = algo_details.read()

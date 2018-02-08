@@ -2,17 +2,14 @@
 from __future__ import division
 import numpy
 import random
-from dlsoo.usefulFunctions import *
-from dlsoo import plot
+from dlsoo import plot, util
 
 import Tkinter
 import ttk
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-# colour display codes
-ansi_red = "\x1B[31m"
-ansi_normal = "\x1B[0m"
+
 #define a global store address so that the program can store the fronts for plotting
 #completed_generation is used to keep track of files that store the front infomration
 store_address = None
@@ -21,11 +18,13 @@ goldenRatio = 1.618034
 userInputDirections = []
 searchPlotData = []
 
+
 def nothing_function(x,y):
     '''
     used to deal with progress handling when no progress_handler is specified
     '''
     pass
+
 
 def createSearchDir(i, j, len1):
     '''
@@ -39,6 +38,7 @@ def createSearchDir(i, j, len1):
             dir.append(0)
     return dir
 
+
 def unNormalise(x, down, up):
     '''
     Takes a set of parameters normalised to the unit cube and converts them back to the actual parameters.
@@ -46,12 +46,14 @@ def unNormalise(x, down, up):
     x1 = [down[i] + x[i]*(up[i] - down[i]) for i in range(len(x))]
     return x1
 
+
 def vecNormalise(x):
     '''
     normalise a column vector x
     '''
     vecNorm = sum([i^2 for i in x])**0.5
     x = [i/vecNorm for i in x]
+
 
 def removeOutliers(differenceList):
     '''
@@ -77,11 +79,9 @@ def removeOutliers(differenceList):
     return (lower + upper)
 
 
-
-
-class optimiser:
+class Optimiser(object):
     '''
-    This is the class that handles the actual operation of the optimiser.
+    This is the class that handles the actual operation of the Optimiser.
     '''
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, individuals=None, progress_handler=None):
         self.interactor = interactor                                #allows the algorithm to obtain the objectives.
@@ -498,7 +498,7 @@ class import_algo_frame(Tkinter.Frame):
             setup['add_current_to_individuals'] = True
         if self.dirsGiven:
             for i in range(int(self.i7.get())):
-                setup['searchDirections'].append(list(extractNumbers(self.dirInputs[i].get())))
+                setup['searchDirections'].append(list(util.extract_numbers(self.dirInputs[i].get())))
         return setup
 
     def askNum(self):

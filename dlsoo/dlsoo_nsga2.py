@@ -55,9 +55,8 @@ def remove_prop_duplicates(initial_list):
     return new_list
 
 
-class optimiser:
+class Optimiser(object):
 
-    #def __init__(self, interactor, store_location, population_size, generations, param_count, result_count, min_var, max_var, pmut=None, pcross=0.9, eta_m=20, eta_c=20, individuals=None, seed=None, progress_handler=None):
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, individuals=None, progress_handler=None):
 
         self.memo = {}

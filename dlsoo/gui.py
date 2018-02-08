@@ -13,7 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 
 import cothread
-from . import ca_abstraction_mapping, config, plot, tkutil, util, usefulFunctions
+from . import ca_abstraction_mapping, config, interactors, plot, tkutil, util
 
 
 def save_details_files(start_time, end_time, store_address, optimiser,
@@ -33,30 +33,26 @@ def save_details_files(start_time, end_time, store_address, optimiser,
         f.write("End time: {0}-{1}-{2} {3}:{4}:{5}\n".format(end_time.year, end_time.month, end_time.day, end_time.hour, end_time.minute, end_time.second))
 
 
-class Gui(object):
+def start(optimisers, parameters):
+    root = Tkinter.Tk()
+    root.title("DLS Online Optimiser")
+    root.geometry('+100+100')
 
-    def __init__(self, optimisers, parameters):
-        self.root = Tkinter.Tk()
-        self.root.title("DLS Online Optimiser")
-        self.root.geometry('+100+100')
-        self.parameters = parameters
+    #threading method for Pause and Cancel methods to work
+    def yielder():
+        cothread.Yield()
+        root.after(100, yielder)
+    root.after(100, yielder)
 
-        #threading method for Pause and Cancel methods to work
-        def yielder():
-            cothread.Yield()
-            self.root.after(100, yielder)
-        self.root.after(100, yielder)
+    MainWindow(root, optimisers, parameters)
+    selector = TargetSelector(root)
+    selector.raise_to_top()
+    root.wait_window(selector)
+    parameters.useMachine = selector.machine_selected()
+    selector.destroy()
 
-        # The main setup window
-        self.main_window = MainWindow(self.root, optimisers, parameters)
-        selector = TargetSelector(self.root)
-        selector.raise_to_top()
-        self.root.wait_window(selector)
-        self.parameters.useMachine = selector.machine_selected()
-
-    def start(self):
-        self.root.mainloop()
-        cothread.WaitForQuit()
+    root.mainloop()
+    cothread.WaitForQuit()
 
 
 class TargetSelector(tkutil.DialogBox):
@@ -81,6 +77,7 @@ class TargetSelector(tkutil.DialogBox):
         machine_button.grid(row=1, column=1)
         continue_button = Tkinter.Button(self.body, text='Continue', command=self.cancel)
         continue_button.grid(row=2, column=0, columnspan=2)
+        self.bind('<Return>', self.cancel)
         self.body.pack()
 
 
@@ -268,10 +265,10 @@ class MainWindow(Tkinter.Frame):
 
         #save parameters and objectives as Pickle objects
         for i in range(len(self.parameters.parameters)):
-            usefulFunctions.save_object(self.parameters.parameters[i],
+            util.save_object(self.parameters.parameters[i],
                     '{0}/PARAMETERS/parameter_{1}'.format(self.parameters.store_address, i))
         for i in range(len(self.parameters.results)):
-            usefulFunctions.save_object(self.parameters.results[i],
+            util.save_object(self.parameters.results[i],
                     '{0}/RESULTS/result_{1}'.format(self.parameters.store_address, i))
 
         #save signconverter
@@ -323,7 +320,7 @@ class MainWindow(Tkinter.Frame):
 
     #next three functions make associated windows appear on screen
     def show_add_pv_window(self):
-        self.parent.deiconify()
+        self.add_pv_window.deiconify()
 
     def show_add_bulk_pv_window(self):
         self.add_bulk_pv_window.deiconify()
@@ -358,7 +355,7 @@ class MainWindow(Tkinter.Frame):
 
     def next_button(self):
         """
-        loads optimiser file, withdraws all windows involved with the main window
+        loads Optimiser file, withdraws all windows involved with the main window
         """
         if not self.validate_save_location(self.i_save_address.get()):
             tkutil.ErrorPopup(self.parent,
@@ -623,9 +620,9 @@ class AlgorithmSettings(tkutil.DialogBox):
                 self.parameters.signConverter.append(1)
 
         #define the appropriate interactor depending on using machine or simulator
-        interactor_class = (util.dls_machine_interactor_bulk_base
+        interactor_class = (interactors.dls_machine_interactor_bulk_base
                             if self.parameters.useMachine
-                            else util.sim_machine_interactor_bulk_base)
+                            else interactors.sim_machine_interactor_bulk_base)
         self.parameters.interactor = interactor_class(
             mp_addresses,
             mr_addresses,
@@ -634,14 +631,14 @@ class AlgorithmSettings(tkutil.DialogBox):
         )
 
         #save the interactor object to file (used in post_analysis file)
-        usefulFunctions.save_object(self.parameters.interactor,
+        util.save_object(self.parameters.interactor,
                 '{0}/interactor.txt'.format(self.parameters.store_address))
 
         #find out initial settings
         initial_mp = self.parameters.interactor.get_mp()
 
-        #initialise optimiser class in the algorithm file using settings dictionary among other arguments
-        self.parameters.optimiser = optimiser_wrapper.optimiser(settings_dict=algo_settings,
+        #initialise Optimiser class in the algorithm file using settings dictionary among other arguments
+        self.parameters.optimiser = optimiser_wrapper.Optimiser(settings_dict=algo_settings,
                                                 interactor=self.parameters.interactor,
                                                 store_location=self.parameters.store_address,
                                                 a_min_var=ap_min_var,
@@ -951,7 +948,7 @@ class AddBulkPv(Tkinter.Frame):
             print "mpgr to be added: {0}".format([i.mp_label for i in mpgr.mp_representations])
 
             #need to calculate bounds and hence need to use the machine interactor to measure PVs
-            temp_interactor = modified_interactor2(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]])
+            temp_interactor = interactors.dls_machine_interactor_bulk_base(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]])
             initial_mps = temp_interactor.get_mp()
 
             if processed_details[6] == 1:
@@ -1000,20 +997,18 @@ class StripPlot(Tkinter.Frame):
     This class produces the Striptool plot, which is not used by default
     """
 
-    def __init__(self, parent, progress_frame):
+    def __init__(self, parent, progress_frame, interactor):
 
         Tkinter.Frame.__init__(self, parent)
         self.parent = parent
         self.progress_frame = progress_frame
+        self.interactor = interactor
         self.initUi()
 
     def initUi(self):
         """
         define GUI
         """
-
-        global interactor
-        self.interactor = interactor
         self.data_sets = []
         self.time_sets = []
         self.initTime = time.time()
@@ -1029,7 +1024,6 @@ class StripPlot(Tkinter.Frame):
         """
         updates the Striptool for one objective measurement
         """
-
         mps = self.interactor.get_mp()
         mrs = []
         for i in self.interactor.measurement_vars:
@@ -1080,7 +1074,7 @@ class ShowProgress(Tkinter.Frame):
 
         #optional striptool feature (recommended to the user to be turned off (==0)
         if self.parameters.Striptool_On == 1:
-            self.strip_plot = StripPlot(self.parent)
+            self.strip_plot = StripPlot(self.parent, self.pbar_progress)
             self.strip_plot.grid(row=2, column=0, columnspan=4)
 
         #cancel method
@@ -1158,7 +1152,6 @@ class PlotProgress(Tkinter.Frame):
         self.canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
 
-#This class is new for injection_control: It allows the user to add a lifetime proxy as an objective. For more information, see the User manual + Report
 class AddLifetime(tkutil.DialogBox):
     """
     This class is for adding LIFETIME PROXY as an objective

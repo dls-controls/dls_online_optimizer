@@ -4,15 +4,12 @@ Created on 7 Jul 2017
 @author: James Rogers
 '''
 
-#-----------------------------------------------------------------IMPORT LIBRARIES-----------------------------------------------------------------#
-
 
 import random
 import os
 
 import Tkinter
 import ttk
-import tkMessageBox
 
 from scipy import spatial
 from dlsoo import plot
@@ -27,16 +24,12 @@ completed_iteration = 0                      #number of completed iterations
 completed_percentage = 0.0                   #fraction of optimisation completed
 pareto_front = ()                            #current pareto-front with the format (((param1,param2,...),(obj1,obj2,...),(err1,err2,...)),...)
 
-# colour display codes
-ansi_red = "\x1B[31m"
-ansi_normal = "\x1B[0m"
 
 def nothing_function(data):
     pass
 
-#----------------------------------------------------------------OPTIMISER CLASS-------------------------------------------------------------------#
 
-class optimiser:
+class Optimiser(object):
 
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, progress_handler=None):
 

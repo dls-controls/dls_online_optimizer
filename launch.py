@@ -38,6 +38,5 @@ if __name__ == '__main__':
 
     parameters = config.Parameters()
 
-    g = gui.Gui(OPTIMISERS, parameters)
+    gui.start(OPTIMISERS, parameters)
 
-    g.start()

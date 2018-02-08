@@ -9,30 +9,29 @@ import numpy
 import math
 import os
 import random
-import scipy.stats as stats
+from scipy import stats
 
 import Tkinter
 import ttk
 
-from dlsoo import plot, tkutil
-from dlsoo.usefulFunctions import *
+from dlsoo import plot, tkutil, util
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-# colour display codes
-ansi_red = "\x1B[31m"
-ansi_normal = "\x1B[0m"
+
 #define a global store address so that the program can store the fronts for plotting
 #completed_generation is used to keep track of files that store the front infomration
 store_address = None
 completed_generation = 0
 
-#The following is a list of functions useful to the optimiser bolow
-#used to deal with the case of progress handler for the optimiser class
+
+#The following is a list of functions useful to the Optimiser bolow
+#used to deal with the case of progress handler for the Optimiser class
 def nothing_function(data, x):
     '''
     Used as a substitute when there is no progress_handler given.
     '''
     pass
+
 
 def is_dominated(x,y):
     '''
@@ -47,6 +46,7 @@ def is_dominated(x,y):
             isLargerEqual = False
     return (isLargerEqual and isLarger)
 
+
 def probCalc(newObj, oldObj, temp):
     '''
     calculate the acceptance probability for a new set of parameters
@@ -56,6 +56,7 @@ def probCalc(newObj, oldObj, temp):
     for i in range(len(newObj)):
         exponent = exponent + (newObj[i] - oldObj[i])/temp[i]
     return min(1, numpy.exp(-exponent))
+
 
 def addRanGuass(params, temp, upBound, downBound):
     '''
@@ -69,9 +70,10 @@ def addRanGuass(params, temp, upBound, downBound):
         newPoint.append(x)
     return newPoint
 
-class optimiser:
+
+class Optimiser(object):
     '''
-    This is the optimiser class which deals with the actual optimisation process.
+    This is the Optimiser class which deals with the actual optimisation process.
     '''
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, individuals=None, progress_handler=None):
         self.interactor = interactor    #The interactor is what allows the program to evalute objectives.
@@ -144,7 +146,7 @@ class optimiser:
             objectiveEval = self.getObjectives()
             testResults.append(objectiveEval[0])
         for i in range(self.objCount):
-            newTemp = mean(extractColumn(testResults, i))
+            newTemp = util.mean(util.extract_column(testResults, i))
             self.outTemp.append(newTemp)
 
     def setNewOutTemp(self, objMin):
