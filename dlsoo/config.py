@@ -1,3 +1,4 @@
+import os
 
 
 class Parameters(object):
@@ -26,6 +27,14 @@ class Parameters(object):
     optimiser_wrapper_address = None
     optimiser_wrapper = None
 
+    # Default to 'results' directory
+    directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    save_location = os.path.join(directory, 'results')
+    if not os.path.exists(save_location):
+        try:
+            os.makedirs(save_location)
+        except OSError as e:
+            save_location = None
     store_address = None
 
     algo_settings_dict = None

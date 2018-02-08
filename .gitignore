@@ -1,3 +1,6 @@
+# Default save location
+results/
+
 # Vim temporary files
 *.swp
 *.swo

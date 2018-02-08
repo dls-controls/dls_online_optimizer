@@ -186,6 +186,7 @@ class MainWindow(Tkinter.Frame):
         #SAVE DIRECTORY
         Tkinter.Label(self.parent, text="Save directory:").grid(row=4, column=0, sticky=Tkinter.E)
         self.i_save_address = Tkinter.Entry(self.parent)
+        self.i_save_address.insert(0, self.parameters.save_location)
         self.i_save_address.grid(row=4, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.btn_browse_save_address = Tkinter.Button(self.parent, text="Browse...", command=self.browse_save_location)
         self.btn_browse_save_address.grid(row=4, column=5, sticky=Tkinter.E+Tkinter.W)
@@ -297,19 +298,28 @@ class MainWindow(Tkinter.Frame):
         final_plot_frame.initUi()
         self.final_plot_window.deiconify()
 
+    def validate_save_location(self, save_location):
+        current_time_string = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y_%H.%M.%S')
+        dirname = 'Optimisation@{}'.format(current_time_string)
+        store_address = os.path.join(save_location, dirname)
+        if not os.path.exists(store_address):
+            try:
+                os.makedirs(store_address)
+            except OSError:
+                return False
+        self.i_save_address.delete(0, 'end')
+        self.i_save_address.insert(0, save_location)
+        self.parameters.store_address = store_address
+        print 'Store address has been chosen to be ',self.parameters.store_address
+        return True
 
     def browse_save_location(self):
         """
         Once a save location has been defined, this function creates a new folder in this location. All data will be save here.
         """
-        current_time_string = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y_%H.%M.%S')
-        store_directory = tkFileDialog.askdirectory()
-        self.i_save_address.delete(0, 'end')
-        self.i_save_address.insert(0, store_directory)
-        self.parameters.store_address = '{0}/Optimisation@{1}'.format(store_directory, current_time_string)
-        if not os.path.exists(self.parameters.store_address):                                               #make save directory
-            os.makedirs(self.parameters.store_address)
-        print 'Store address has been chosen to be ',self.parameters.store_address
+        save_location = tkFileDialog.askdirectory(initialdir=self.parameters.save_location)
+        if save_location:
+            self.validate_save_location(save_location)
 
     #next three functions make associated windows appear on screen
     def show_add_pv_window(self):
@@ -350,7 +360,7 @@ class MainWindow(Tkinter.Frame):
         """
         loads optimiser file, withdraws all windows involved with the main window
         """
-        if self.parameters.store_address is None:
+        if not self.validate_save_location(self.i_save_address.get()):
             tkutil.ErrorPopup(self.parent,
                               "No save directory",
                               "Please specify a save directory")
