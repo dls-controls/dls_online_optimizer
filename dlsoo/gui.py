@@ -383,7 +383,14 @@ class MainWindow(Tkinter.Frame):
         """
         print "Loading configuration..."
 
-        config_file = tkFileDialog.askopenfile()
+        root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        config_dir = os.path.join(root_dir, 'config')
+        if not os.path.exists(config_dir):
+            try:
+                os.makedirs(config_dir)
+            except OSError as e:
+                config_dir = None
+        config_file = tkFileDialog.askopenfile(initialdir=config_dir)
         config = pickle.load(config_file)
         self.parameters.parameters += config['parameters']
         self.parameters.results += config['results']
