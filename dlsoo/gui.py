@@ -40,7 +40,6 @@ class Gui(object):
         self.root.title("DLS Online Optimiser")
         self.root.geometry('+100+100')
         self.parameters = parameters
-        print(self.root.geometry())
 
         #threading method for Pause and Cancel methods to work
         def yielder():
@@ -100,6 +99,7 @@ class MainWindow(Tkinter.Frame):
         """
         Generate the GUI
         """
+        self.parent.protocol('WM_DELETE_WINDOW', self.close)
         # The dialog for adding input parameters
         self.add_pv_window = Tkinter.Toplevel(self.parent)
         self.add_pv_frame = AddPv(self.add_pv_window, self, self.parameters)
@@ -122,15 +122,6 @@ class MainWindow(Tkinter.Frame):
         self.progress_frame = ShowProgress(self.progress_window,
                 self.parameters)
         self.progress_window.withdraw()
-
-        # The dialog for changing algorithm settings
-        self.algorithm_settings_window = Tkinter.Toplevel(self.parent)
-        self.algorithm_settings_frame = AlgorithmSettings(
-                self.algorithm_settings_window,
-                self,
-                self.parameters,
-                self.progress_frame)
-        self.algorithm_settings_window.withdraw()
 
 
         # The dialogs for showing the final results
@@ -227,6 +218,10 @@ class MainWindow(Tkinter.Frame):
         self.btn_save_config = Tkinter.Button(self.parent, text="Save configuration", command=self.save_config)
         self.btn_save_config.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
 
+    def close(self):
+        self.parent.destroy()
+        cothread.Quit()
+
     def run_optimisation(self):
         """
         initialises progress windows and calls on the the optimisation to begin susing function below
@@ -234,7 +229,6 @@ class MainWindow(Tkinter.Frame):
         print "Let's go!"
 
         self.progress_frame.initUi()
-        self.algorithm_settings_window.withdraw()
 
         self.parameters.initial_settings = self.parameters.interactor.get_mp()
 
@@ -356,19 +350,22 @@ class MainWindow(Tkinter.Frame):
         """
         loads optimiser file, withdraws all windows involved with the main window
         """
-        global optimiser_wrapper_address
-        global Striptool_On
+        if self.parameters.store_address is None:
+            tkutil.ErrorPopup(self.parent,
+                              "No save directory",
+                              "Please specify a save directory")
+        else:
+            optimiser_wrapper_address = self.optimisers[self.optimiserChoice.get()]
+            self.parameters.Striptool_On = self.striptool_on.get()
 
-        optimiser_wrapper_address = self.optimisers[self.optimiserChoice.get()]
-        Striptool_On = self.striptool_on.get()
+            # The dialog for changing algorithm settings
+            self.algorithm_settings_frame = AlgorithmSettings(
+                self,
+                self.parameters,
+                self.progress_frame)
 
-        self.add_obj_func_window.withdraw()
-        self.parent.withdraw()
-        self.add_bulk_pv_window.withdraw()
-        self.parent.withdraw()
-        self.algorithm_settings_frame.load_algo_frame(optimiser_wrapper_address)
-        self.algorithm_settings_frame.initUi()
-        self.algorithm_settings_window.deiconify()
+            self.algorithm_settings_frame.load_algo_frame(optimiser_wrapper_address)
+            self.algorithm_settings_frame.set_up()
 
     def load_config(self):
         """
@@ -525,33 +522,33 @@ class PointDetails(Tkinter.Frame):
         self.parent.withdraw()
 
 
-class AlgorithmSettings(Tkinter.Frame):
+class AlgorithmSettings(tkutil.DialogBox):
     """
     This class import_algo_frame class in the algorithm file. This is used to collect the algorithm settings, then the
     optimisation is started. Once this begins, all windows associated with the main window disappear.
     """
 
-    def __init__(self, parent, main_window, parameters, progress_frame):
+    def __init__(self, main_window, parameters, progress_frame):
 
-        Tkinter.Frame.__init__(self, parent, progress_frame)
-
-        self.parent = parent
+        tkutil.DialogBox.__init__(self, main_window)
+        self.title("Algorithm settings")
         self.main_window = main_window
         self.parameters = parameters
         self.progress_frame = progress_frame
 
-    def initUi(self):
+    def create_body(self):
+        pass
+
+    def set_up(self):
         """
         Generate GUI frame for algorithm settings
         """
 
-        self.parent.title("Algorithm settings")
-
         self.algo_frame.grid(row=0, column=0, columnspan=2, sticky=Tkinter.N+Tkinter.E+Tkinter.S+Tkinter.W, pady=10, padx=10)
 
-        ttk.Separator(self.parent, orient="horizontal").grid(row=1, pady=10, padx=10, sticky=Tkinter.E+Tkinter.W, columnspan=2)
+        ttk.Separator(self, orient="horizontal").grid(row=1, pady=10, padx=10, sticky=Tkinter.E+Tkinter.W, columnspan=2)
 
-        b0 = Tkinter.Button(self.parent, text="Start...", bg="red", command=self.set_settings)
+        b0 = Tkinter.Button(self, text="Start...", bg="red", command=self.set_settings)
         b0.grid(row=2, column=1, sticky=Tkinter.E+Tkinter.W)
 
     def load_algo_frame(self, file_address):
@@ -563,7 +560,7 @@ class AlgorithmSettings(Tkinter.Frame):
                 '{}.py'.format(module_name))
         global optimiser_wrapper
         optimiser_wrapper = imp.load_source(module_name, module)
-        self.algo_frame = optimiser_wrapper.import_algo_frame(self.parent)
+        self.algo_frame = optimiser_wrapper.import_algo_frame(self)
 
     def set_settings(self):
         """
@@ -584,7 +581,7 @@ class AlgorithmSettings(Tkinter.Frame):
             interactor = 'MACHINE' if self.parameters.useMachine else 'SIMULATOR'
 
             ready = tkutil.YesNoPopup.open(
-                self.parent,
+                self,
                 'READY?',
                 'You are using the {}. '.format(interactor) +
                         'Are you sure you wish to start optimisation?')
@@ -634,9 +631,8 @@ class AlgorithmSettings(Tkinter.Frame):
                                                 a_max_var=ap_max_var,
                                                 progress_handler=self.progress_frame.handle_progress) # Still need to add the individuals, and the progress handler
 
-        #withdraw all windows associated with the main window
-        self.parent.withdraw()
         #NOW RUN THE OPTIMISATION (using function below)
+        self.destroy()
         self.main_window.run_optimisation()
 
 

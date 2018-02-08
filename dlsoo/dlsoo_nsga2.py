@@ -621,12 +621,9 @@ class import_algo_frame(Tkinter.Frame):
         self.i4.insert(0, "20")
         self.i5.insert(0, "20")
 
-
-
     def get_dict(self):
 
         setup = {}
-
         try:
             setup['pop_size'] = int(self.i0.get())
         except:
