@@ -616,7 +616,7 @@ class import_algo_frame(Tkinter.Frame):
 
         self.i0.insert(0, "10")
         self.i1.insert(0, "10")
-        self.i2.insert(0, "")
+        self.i2.insert(0, "0.1")
         self.i3.insert(0, "0.9")
         self.i4.insert(0, "20")
         self.i5.insert(0, "20")
