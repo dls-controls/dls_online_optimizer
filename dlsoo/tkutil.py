@@ -63,17 +63,18 @@ class YesNoPopup(DialogBox):
         body.grid()
         label = ttk.Label(body, text=self._message, wraplength=200)
         label.grid(row=0, column=0, columnspan=2)
-        yes_button = ttk.Button(body, text="Yes", command=self.yes)
+        yes_button = ttk.Button(body, text="Yes", command=self.yes_cmd)
         yes_button.grid(row=1, column=0)
-        no_button = ttk.Button(body, text="No", command=self.no)
+        no_button = ttk.Button(body, text="No", command=self.no_cmd)
         no_button.grid(row=1, column=1)
         body.pack()
 
-    def yes(self):
+    def yes_cmd(self):
         self.yes = True
         self.cancel()
 
-    def no(self):
+    def no_cmd(self):
+        self.yes = False
         self.cancel()
 
     @staticmethod

@@ -534,8 +534,7 @@ class PointDetails(Tkinter.Frame):
         """
         This allows the user to reconfigure the machine to the original settings
         """
-        global initial_settings
-        self.parameters.interactor.set_mp(initial_settings)
+        self.parameters.interactor.set_mp(self.parameters.initial_settings)
 
     def x_button(self):
         print "Exited"
