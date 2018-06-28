@@ -334,24 +334,28 @@ class MainWindow(Tkinter.Frame):
 
     #next two functions remove Parameters and Objectives from list (if required)
     def remove_pv(self):
-        iid = self.Tinput_params.selection()[0]
-        print "REMOVE PV"
+        selection = self.Tinput_params.selection()
+        if selection:
+            iid = selection[0]
+            print "REMOVE PV"
 
-        for mpgrn, mpgr in enumerate(self.parameters.parameters):
-            print mpgr.list_iid
-            if mpgr.list_iid == iid:
-                self.Tinput_params.delete(iid)
-                del self.parameters.parameters[mpgrn]
+            for mpgrn, mpgr in enumerate(self.parameters.parameters):
+                print mpgr.list_iid
+                if mpgr.list_iid == iid:
+                    self.Tinput_params.delete(iid)
+                    del self.parameters.parameters[mpgrn]
 
     def remove_obj(self):
-        print "REMOVE OBJ"
-        iid = self.Toutput_params.selection()[0]
+        selection = self.Toutput_params.selection()
+        if selection:
+            iid = selection[0]
+            print "REMOVE OBJ"
 
-        for mrrn, mrr in enumerate(self.parameters.results):
+            for mrrn, mrr in enumerate(self.parameters.results):
 
-            if mrr.list_iid == iid:
-                self.Toutput_params.delete(iid)
-                del self.parameters.results[mrrn]
+                if mrr.list_iid == iid:
+                    self.Toutput_params.delete(iid)
+                    del self.parameters.results[mrrn]
 
     def next_button(self):
         """
