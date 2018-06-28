@@ -392,38 +392,39 @@ class MainWindow(Tkinter.Frame):
             except OSError as e:
                 config_dir = None
         config_file = tkFileDialog.askopenfile(initialdir=config_dir)
-        config = pickle.load(config_file)
-        self.parameters.parameters += config['parameters']
-        self.parameters.results += config['results']
-        config_file.close()
+        if config_file is not None:
+            config = pickle.load(config_file)
+            self.parameters.parameters += config['parameters']
+            self.parameters.results += config['results']
+            config_file.close()
 
-        self.Tinput_params.delete(*self.Tinput_params.get_children())
-        self.Toutput_params.delete(*self.Toutput_params.get_children())
+            self.Tinput_params.delete(*self.Tinput_params.get_children())
+            self.Toutput_params.delete(*self.Toutput_params.get_children())
 
-        for mpgr in self.parameters.parameters:
+            for mpgr in self.parameters.parameters:
 
-            if len(mpgr.mp_representations) == 1:
-                mpr = mpgr.mp_representations[0]
-                iid = self.Tinput_params.insert('', 'end', text=mpr.mp_label, values=(mpgr.ap_min, mpgr.ap_max, mpr.mp_obj.delay))
-                print "Single iid: {0}".format(iid)
-                mpgr.list_iid = iid
-                mpr.list_iid = iid
-
-            else:
-                parent_iid = self.Tinput_params.insert('', 'end', text=mpgr.ap_label, values=(mpgr.ap_min, mpgr.ap_max, mpgr.mp_representations[0].mp_obj.delay))
-                mpgr.list_iid = parent_iid
-                print "Bulk parent iid: {0}".format(parent_iid)
-                for mpr in mpgr.mp_representations:
-                    iid = self.Tinput_params.insert(parent_iid, 'end', text=mpr.mp_label, values=("", "", mpr.mp_obj.delay))
-                    print "Bulk individual iid: {0}, belonging to parent iid: {1}".format(iid, parent_iid)
+                if len(mpgr.mp_representations) == 1:
+                    mpr = mpgr.mp_representations[0]
+                    iid = self.Tinput_params.insert('', 'end', text=mpr.mp_label, values=(mpgr.ap_min, mpgr.ap_max, mpr.mp_obj.delay))
+                    print "Single iid: {0}".format(iid)
+                    mpgr.list_iid = iid
                     mpr.list_iid = iid
 
-        for mrr in self.parameters.results:
+                else:
+                    parent_iid = self.Tinput_params.insert('', 'end', text=mpgr.ap_label, values=(mpgr.ap_min, mpgr.ap_max, mpgr.mp_representations[0].mp_obj.delay))
+                    mpgr.list_iid = parent_iid
+                    print "Bulk parent iid: {0}".format(parent_iid)
+                    for mpr in mpgr.mp_representations:
+                        iid = self.Tinput_params.insert(parent_iid, 'end', text=mpr.mp_label, values=("", "", mpr.mp_obj.delay))
+                        print "Bulk individual iid: {0}, belonging to parent iid: {1}".format(iid, parent_iid)
+                        mpr.list_iid = iid
 
-            iid = self.Toutput_params.insert('', 'end', text=mrr.mr_label, values=(mrr.mr_obj.min_counts, mrr.mr_obj.delay, mrr.max_min_text, mrr.inj_setting_text))
-            mrr.list_iid = iid
+            for mrr in self.parameters.results:
 
-        print [i.list_iid for i in self.parameters.parameters]
+                iid = self.Toutput_params.insert('', 'end', text=mrr.mr_label, values=(mrr.mr_obj.min_counts, mrr.mr_obj.delay, mrr.max_min_text, mrr.inj_setting_text))
+                mrr.list_iid = iid
+
+            print [i.list_iid for i in self.parameters.parameters]
 
     def save_config(self):
         """
@@ -431,11 +432,12 @@ class MainWindow(Tkinter.Frame):
         """
 
         config_file = tkFileDialog.asksaveasfile()
-        config = {'parameters' : self.parameters.parameters,
-                  'results' : self.parameters.results}
+        if config_file is not None:
+            config = {'parameters' : self.parameters.parameters,
+                      'results' : self.parameters.results}
 
-        pickle.dump(config, config_file)
-        config_file.close()
+            pickle.dump(config, config_file)
+            config_file.close()
 
 
 class PointDetails(Tkinter.Frame):
