@@ -120,15 +120,10 @@ class MainWindow(Tkinter.Frame):
                 self.parameters)
         self.progress_window.withdraw()
 
-
         # The dialogs for showing the final results
         self.point_window = Tkinter.Toplevel(self.parent)
         self.point_frame = PointDetails(self.point_window, self.parameters)
         self.point_window.withdraw()
-
-        # dialog for final plot
-        self.final_plot_window = Tkinter.Toplevel(self.parent)
-        self.final_plot_window.withdraw()
 
         self.striptool_on = Tkinter.IntVar()
         self.striptool_on.set(0)
@@ -289,11 +284,13 @@ class MainWindow(Tkinter.Frame):
 
         #show the final plot windows
         ar_labels = [mrr.ar_label for mrr in self.parameters.results]
-        final_plot_frame = optimiser_wrapper.import_algo_final_plot(self.final_plot_window,
+        final_plot_window = Tkinter.Toplevel(self.parent)
+
+        final_plot_frame = optimiser_wrapper.import_algo_final_plot(final_plot_window,
                 self.point_frame.generateUi, ar_labels, self.parameters.signConverter,
                 initial_config=self.parameters.initial_measurements)
         final_plot_frame.initUi()
-        self.final_plot_window.deiconify()
+        final_plot_window.deiconify()
 
     def validate_save_location(self, save_location):
         current_time_string = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y_%H.%M.%S')
@@ -586,6 +583,7 @@ class AlgorithmSettings(tkutil.DialogBox):
         collect data from algorithm settings window and start optimisation
         """
         #get user defined algorithm settings
+        self.parameters.reset()
         try:
             algo_settings = self.algo_frame.get_dict()
         #settings errors to ensure good data

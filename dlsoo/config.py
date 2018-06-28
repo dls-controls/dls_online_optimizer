@@ -16,50 +16,55 @@ class DlsMeasurementVar:
 
 
 class Parameters(object):
-    keepUpdating = True
-    initial_settings = None
-    initial_measurements = None
-    interactor = None
-    optimiser = None
-    useMachine = False
-    # Sign converter converts algo params to machine params.
-    signConverter = []
-    Striptool_On = None
 
-    mr_to_ar_sign = []
-    mp_addresses = []
-    mr_addresses = []
+    def __init__(self):
+        self.keepUpdating = True
+        self.initial_settings = None
+        self.initial_measurements = None
+        self.interactor = None
+        self.optimiser = None
+        self.useMachine = False
+        self.Striptool_On = None
 
-    mp_min_var = []
-    mp_max_var = []
+        self.mr_to_ar_sign = []
+        self.mp_addresses = []
+        self.mr_addresses = []
 
-    ap_min_var = []
-    ap_max_var = []
+        self.mp_min_var = []
+        self.mp_max_var = []
 
-    relative_settings = []
+        self.ap_min_var = []
+        self.ap_max_var = []
 
-    optimiser_wrapper_address = None
-    optimiser_wrapper = None
+        self.relative_settings = []
 
-    # Default to 'results' directory
-    directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    save_location = os.path.join(directory, 'results')
-    if not os.path.exists(save_location):
-        try:
-            os.makedirs(save_location)
-        except OSError as e:
-            save_location = None
-    store_address = None
+        self.optimiser_wrapper_address = None
+        self.optimiser_wrapper = None
 
-    algo_settings_dict = None
+        # Default to 'results' directory
+        self.directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        self.save_location = os.path.join(self.directory, 'results')
+        if not os.path.exists(self.save_location):
+            try:
+                os.makedirs(self.save_location)
+            except OSError as e:
+                save_location = None
+        self.store_address = None
 
-    mp_labels = []
-    mr_labels = []
-    ap_labels = []
-    ar_labels = []
+        self.algo_settings_dict = None
 
-    parameters = []
-    results = []
+        self.mp_labels = []
+        self.mr_labels = []
+        self.ap_labels = []
+        self.ar_labels = []
+
+        self.parameters = []
+        self.results = []
+        self.reset()
+
+    def reset(self):
+        # Sign converter converts algo params to machine params.
+        self.signConverter = []
 
 
 class MpGroupRepresentation(object):
