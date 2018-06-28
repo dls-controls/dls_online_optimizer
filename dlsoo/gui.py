@@ -740,9 +740,9 @@ class AddPv(Tkinter.Frame):
             iid = self.main_window.Tinput_params.insert('', 'end', text=details[0], values=(details[1], details[2], details[3]))
 
             #define parameter object
-            mpgr = config.mp_group_representation()
-            mpr = config.mp_representation()
-            mpr.mp_obj = util.dls_param_var(details[0], float(details[3]))
+            mpgr = config.MpGroupRepresentation()
+            mpr = config.MpRepresentation()
+            mpr.mp_obj = config.DlsParamVar(details[0], float(details[3]))
             mpr.list_iid = iid
             mpr.mp_label = details[0]
 
@@ -937,10 +937,10 @@ class AddBulkPv(Tkinter.Frame):
         #now that we have good data, create object
         if good_data:
 
-            mpgr = config.mp_group_representation()
+            mpgr = config.MpGroupRepresentation()
             for pv in processed_details[0]:
-                mpr = config.mp_representation()
-                mpr.mp_obj = util.dls_param_var(pv, processed_details[5])
+                mpr = config.MpRepresentation()
+                mpr.mp_obj = config.DlsParamVar(pv, processed_details[5])
                 mpr.mp_label = pv
                 mpgr.mp_representations.append(mpr)
 
@@ -1231,7 +1231,7 @@ class AddLifetime(tkutil.DialogBox):
         mrr = config.MrRepresentation()
 
         #retrieve information from GUI
-        mrr.mr_obj = util.dls_measurement_var(self.i0.get(), float(self.i1.get()), float(self.i2.get()))
+        mrr.mr_obj = config.DlsMeasurementVar(self.i0.get(), float(self.i1.get()), float(self.i2.get()))
 
         #max/min settings
         if self.max_min_setting.get() == 0:
@@ -1350,7 +1350,7 @@ class AddObjFunc(Tkinter.Frame):
         mrr = config.MrRepresentation()
 
         # retrieve information from GUI
-        mrr.mr_obj = util.dls_measurement_var(self.i0.get(),
+        mrr.mr_obj = config.DlsMeasurementVar(self.i0.get(),
                                               float(self.i1.get()),
                                               float(self.i2.get()))
 
