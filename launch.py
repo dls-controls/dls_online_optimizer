@@ -17,6 +17,7 @@ pkg_resources.require('matplotlib')
 pkg_resources.require('numpy')
 pkg_resources.require('scipy')
 
+import sys
 import matplotlib
 matplotlib.use("TkAgg")
 
@@ -32,11 +33,11 @@ OPTIMISERS = {
 
 
 if __name__ == '__main__':
-    print 'Welcome to DLS-OnlineOptimiser'
-    print 'Loading...'
-    print 'Initialling setup windows...'
-
+    print 'Welcome to DLS Online Optimiser'
     parameters = config.Parameters()
-
+    if '-m' in sys.argv:
+        parameters.useMachine = True
+    elif '-s' in sys.argv:
+        parameters.useMachine = False
     gui.start(OPTIMISERS, parameters)
 
