@@ -37,6 +37,8 @@ def start(optimisers, parameters):
     root = Tkinter.Tk()
     root.title("DLS Online Optimiser")
     root.geometry('+100+100')
+    # update the geometry so that we can query it later
+    root.update()
 
     #threading method for Pause and Cancel methods to work
     def yielder():
@@ -45,12 +47,13 @@ def start(optimisers, parameters):
     root.after(100, yielder)
 
     MainWindow(root, optimisers, parameters)
-    selector = TargetSelector(root)
-    selector.raise_to_top()
-    root.wait_window(selector)
-    parameters.useMachine = selector.machine_selected()
-    selector.destroy()
+    if parameters.useMachine is None:
+        selector = TargetSelector(root)
+        selector.raise_to_top()
+        root.wait_window(selector)
+        parameters.useMachine = selector.machine_selected()
 
+    root.title('DLS Online Optimiser - {}'.format('MACHINE' if parameters.useMachine else 'SIMULATOR'))
     root.mainloop()
     cothread.WaitForQuit()
 
@@ -61,23 +64,43 @@ class TargetSelector(tkutil.DialogBox):
         self.selected = Tkinter.IntVar()
         self.selected.set(1)
         tkutil.DialogBox.__init__(self, parent)
+        # Very heavyweight way of keeping this window on top.
+        # self.transient() should do this but doesn't seem to work.
+        self.overrideredirect(True)
         self.title('Choose optimisation target')
+        self.configure(background='lightblue')
+        # Border since regular window decoraion is removed by
+        # overrideredirect()
+        self.config(borderwidth=5, relief=Tkinter.RIDGE)
+        # update own geometry so we can calculate positions
+        self.update()
+        # centre inside parent widget
+        x = parent.winfo_rootx() + parent.winfo_width() / 2 - self.winfo_width() / 2
+        y = parent.winfo_rooty() + parent.winfo_height() / 2 - self.winfo_height() / 2
+        self.geometry('+{}+{}'.format(x, y))
+        self.update()
 
     def machine_selected(self):
         return self.selected.get() == 2
 
     def create_body(self):
+        s = ttk.Style()                     # Creating style element
+        s.configure('Blue.TRadiobutton',    # First argument is the name of style. Needs to end with: .TRadiobutton
+                    background='lightblue',         # Setting background to our specified color above
+                    foreground='black')
         self.body = Tkinter.Frame(self)
         self.body.grid()
         question1 = Tkinter.Label(self.body, text='Which interactor are you intending to use?')
         question1.grid(row=0, column=0, columnspan=2)
-        sim_button = ttk.Radiobutton(self.body, text='Simulator', variable=self.selected, value=1)
+        sim_button = ttk.Radiobutton(self.body, text='Simulator', variable=self.selected, value=1, style='Blue.TRadiobutton')
         sim_button.grid(row=1, column=0)
-        machine_button = ttk.Radiobutton(self.body, text='Machine', variable=self.selected, value=2)
+        machine_button = ttk.Radiobutton(self.body, text='Machine', variable=self.selected, value=2, style='Blue.TRadiobutton')
         machine_button.grid(row=1, column=1)
         continue_button = Tkinter.Button(self.body, text='Continue', command=self.cancel)
         continue_button.grid(row=2, column=0, columnspan=2)
         self.bind('<Return>', self.cancel)
+        self.body.configure(background='lightblue')
+        question1.configure(background='lightblue')
         self.body.pack()
 
 
@@ -1252,7 +1275,6 @@ class AddLifetime(tkutil.DialogBox):
             mrr.inj_setting_text = "Non-injection"
         elif self.inj_setting.get() == 1:
             mrr.inj_setting_text = "Injection"
-        print('got here!')
 
         iid = self.main_window.Toutput_params.insert('', 'end', text=self.i0.get(), values=(self.i1.get(), self.i2.get(), mrr.max_min_text, mrr.inj_setting_text))
         mrr.list_iid = iid

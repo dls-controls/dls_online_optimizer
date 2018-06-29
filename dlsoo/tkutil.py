@@ -17,6 +17,7 @@ class DialogBox(Tkinter.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.cancel)
 
     def create_body(self):
+        """To be implemented by subclasses."""
         pass
 
     def cancel(self, event=None):

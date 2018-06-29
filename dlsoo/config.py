@@ -23,7 +23,7 @@ class Parameters(object):
         self.initial_measurements = None
         self.interactor = None
         self.optimiser = None
-        self.useMachine = False
+        self.useMachine = None
         self.Striptool_On = None
 
         self.mr_to_ar_sign = []
