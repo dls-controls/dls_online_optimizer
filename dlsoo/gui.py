@@ -369,15 +369,53 @@ class MainWindow(Tkinter.Frame):
                     self.Toutput_params.delete(sel)
                     del self.parameters.results[mrrn]
 
-    def next_button(self):
+    def validate_parameters(self):
         """
-        loads Optimiser file, withdraws all windows involved with the main window
+        Validate the parameters to be used.
         """
         if not self.validate_save_location(self.i_save_address.get()):
             tkutil.ErrorPopup(self.parent,
                               "No save directory",
                               "Please specify a save directory")
-        else:
+            return False
+        if not self.parameters.parameters:
+            tkutil.ErrorPopup(self.parent,
+                              "No parameters set",
+                              "No parameters set")
+            return False
+        if not self.parameters.results:
+            tkutil.ErrorPopup(self.parent,
+                              "No objectives set",
+                              "No objectives set")
+
+            return False
+        # If not a simulation, check that all the configured PVs exist.
+        if self.parameters.useMachine:
+            param_pvs = []
+            try:
+                for p in self.parameters.parameters:
+                    for mpg in p.mp_representations:
+                        param_pvs.append(mpg.mp_obj.pv)
+                        pv = mpg.mp_obj.pv
+                        initial_value = util.abstract_caget(pv, throw=True)
+                        print('Initial value for {}: {}'.format(pv, initial_value))
+                for r in self.parameters.results:
+                    pv = r.mr_obj.pv
+                    initial_value = util.abstract_caget(pv, throw=True)
+                    print('Initial value for {}: {}'.format(pv, initial_value))
+            except Exception as e:
+                tkutil.ErrorPopup(self.parent,
+                                  "Initial PV check failed.",
+                                  "Could not fetch initial values for PVs: {}".format(e))
+                return False
+        # All ok
+        return True
+
+    def next_button(self):
+        """
+        loads Optimiser file, withdraws all windows involved with the main window
+        """
+        if self.validate_parameters():
             optimiser_wrapper_address = self.optimisers[self.optimiserChoice.get()]
             self.parameters.Striptool_On = self.striptool_on.get()
 
