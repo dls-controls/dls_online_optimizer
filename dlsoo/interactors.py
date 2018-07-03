@@ -403,11 +403,13 @@ class sim_machine_interactor_bulk_base:
 class dls_machine_interactor_bulk_base_inj_control:
 
     def __init__(self, param_var_groups=None, measurement_vars_noinj=None,
-                 measurement_vars_inj=None, set_relative=None):
+                 measurement_vars_inj=None, set_relative=None,
+                 beam_current_bounds=None):
 
         self.param_var_groups = param_var_groups
         self.measurement_vars_noinj = measurement_vars_noinj
         self.measurement_vars_inj = measurement_vars_inj
+        self.beam_current_bounds = beam_current_bounds
 
         self.param_vars = []
         for group in self.param_var_groups:
@@ -496,7 +498,6 @@ class dls_machine_interactor_bulk_base_inj_control:
     # -------------------------- MOST IMPORTANT FUNCTION IN CLASS FOR INJECTION CONTROL ----------------------#
 
     def get_mr(self):
-        global beam_current_bounds
         get_command = util.abstract_caget
         beam_current_max_warning = False
 
@@ -509,9 +510,9 @@ class dls_machine_interactor_bulk_base_inj_control:
         cothread.Sleep(4.0)
 
         beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
-        while beam_current < beam_current_bounds[0]:
+        while beam_current < self.beam_current_bounds[0]:
             print 'waiting for beam current to rise above ', \
-                beam_current_bounds[0]
+                self.beam_current_bounds[0]
             cothread.Sleep(1)
             beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
             print '...'
@@ -523,7 +524,7 @@ class dls_machine_interactor_bulk_base_inj_control:
 
         ''' Now for the non-injection measurements '''
 
-        if get_command('SR-DI-DCCT-01:SIGNAL') > beam_current_bounds[1]:
+        if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
             beam_current_max_warning = True
 
         # Stop injection
@@ -621,4 +622,20 @@ class dls_machine_interactor_bulk_base_inj_control:
         print self.ap_to_mp_store
         return pickle.dumps(self.ap_to_mp_store)
 
+
+class modified_interactor(dls_machine_interactor_bulk_base_inj_control):
+    """
+    Why do we need a modified one?
+    """
+    def mr_to_ar(self, mrs):
+            #converts a set of machine results to algorithm results
+            ars = []
+            mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in results]
+            for mr, sign in zip(mrs, mr_to_ar_sign):
+                if sign == '+':
+                    ars.append(mr)
+                elif sign == '-':
+                    ars.append(-mr)
+
+            return ars
 

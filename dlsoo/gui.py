@@ -1004,7 +1004,7 @@ class AddBulkPv(Tkinter.Frame):
             print "mpgr to be added: {0}".format([i.mp_label for i in mpgr.mp_representations])
 
             #need to calculate bounds and hence need to use the machine interactor to measure PVs
-            temp_interactor = interactors.dls_machine_interactor_bulk_base(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]])
+            temp_interactor = interactors.modified_interactor(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]], beam_current_bounds=self.parameters.beam_current_bounds)
             initial_mps = temp_interactor.get_mp()
 
             if processed_details[6] == 1:

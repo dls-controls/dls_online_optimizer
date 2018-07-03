@@ -42,24 +42,15 @@ def save_object(obj, filename):
         pickle.dump(obj, output)
 
 
-def update_beam_current_bounds(I_min, I_max):
-     """
-     This is for the lifetime proxy. We beleive the equation for the proxy will only hold (i.e. independant with current)
-     for a certain range.
-     """
-     global beam_current_bounds
-     beam_current_bounds = [I_min, I_max]
-     print 'BEAM CURRENT BOUNDS ARE ',beam_current_bounds
-
-
-def abstract_caget(pv):
+def abstract_caget(pv, throw=False):
     """
     standard channel access 'get' function using cothread
     """
+    print('caget {}'.format(pv))
     if pv in ca_abstraction_mapping.name_to_function_mapping:
         return ca_abstraction_mapping.name_to_function_mapping[pv]()
     else:
-        return caget(pv)
+        return caget(pv, throw=True)
 
 
 def abstract_caput(pv, value):
