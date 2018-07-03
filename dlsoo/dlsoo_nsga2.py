@@ -1,10 +1,10 @@
 '''
+fast non-dominated sorting genetic algorithm II
 
 Version 3
 2016-08-01 15:00
 
 '''
-"fast non-dominated sorting genetic algorithm II"
 
 import random, sys
 import time
@@ -38,8 +38,6 @@ def crowded_comparison_key(x):
     print x
     return (x.rank, -x.distance)
 
-def nothing_function(data):
-    pass
 
 def remove_prop_duplicates(initial_list):
     new_list = []
@@ -74,8 +72,8 @@ class Optimiser(object):
         self.eta_m = settings_dict['eta_m']
         self.eta_c = settings_dict['eta_c']
 
-        if progress_handler == None:
-            progress_handler = nothing_function
+        if progress_handler is None:
+            progress_handler = lambda x: None
 
         self.progress_handler = progress_handler
 
@@ -485,8 +483,6 @@ class Optimiser(object):
             f.write("),\n")
         f.write(")\n")
         f.close()
-
-        pass
 
     def optimise(self):
 

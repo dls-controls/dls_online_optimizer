@@ -45,10 +45,8 @@ class Parameters(object):
         self.directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         self.save_location = os.path.join(self.directory, 'results')
         if not os.path.exists(self.save_location):
-            try:
-                os.makedirs(self.save_location)
-            except OSError as e:
-                save_location = None
+            os.makedirs(self.save_location)
+
         self.store_address = None
 
         self.algo_settings_dict = None

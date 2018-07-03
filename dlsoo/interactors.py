@@ -501,7 +501,7 @@ class dls_machine_interactor_bulk_base_inj_control:
         get_command = util.abstract_caget
         beam_current_max_warning = False
 
-        ''' First measure the injection results '''
+        # First measure the injection results
         # Begin injecting
         print "Start injection"
         caput('LI-TI-MTGEN-01:START', 1)
@@ -517,12 +517,10 @@ class dls_machine_interactor_bulk_base_inj_control:
             beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
             print '...'
 
-        run = True
-        start_time = time.time()
+        mrs_inj = util.measure_results(self.measurement_vars_inj,
+                                       util.abstract_caget)
 
-        mrs_inj = util.measure_results(self.measurement_vars_inj, util.abstract_caget)
-
-        ''' Now for the non-injection measurements '''
+        # Now for the non-injection measurements
 
         if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
             beam_current_max_warning = True
@@ -534,10 +532,10 @@ class dls_machine_interactor_bulk_base_inj_control:
         caput('LI-TI-MTGEN-01:STOP', 0)
         cothread.Sleep(1)
 
-        mrs_noinj = measure_results(self.measurement_vars_noinj,
-                                    util.abstract_caget)
+        mrs_noinj = util.measure_results(self.measurement_vars_noinj,
+                                         util.abstract_caget)
 
-        ''' Now combine the results into a single list '''
+        # Now combine the results into a single list
 
         results = mrs_noinj + mrs_inj
 
@@ -621,21 +619,3 @@ class dls_machine_interactor_bulk_base_inj_control:
     def string_ap_to_mp_store(self):
         print self.ap_to_mp_store
         return pickle.dumps(self.ap_to_mp_store)
-
-
-class modified_interactor(dls_machine_interactor_bulk_base_inj_control):
-    """
-    Why do we need a modified one?
-    """
-    def mr_to_ar(self, mrs):
-            #converts a set of machine results to algorithm results
-            ars = []
-            mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in results]
-            for mr, sign in zip(mrs, mr_to_ar_sign):
-                if sign == '+':
-                    ars.append(mr)
-                elif sign == '-':
-                    ars.append(-mr)
-
-            return ars
-

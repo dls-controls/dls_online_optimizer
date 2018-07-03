@@ -9,7 +9,7 @@ import ttk
 import tkFileDialog
 import tkMessageBox
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import cothread
@@ -127,7 +127,9 @@ class MainWindow(Tkinter.Frame):
 
         # The dialog for adding input group parameters
         self.add_bulk_pv_window = Tkinter.Toplevel(self.parent)
-        self.add_bulk_pv_frame = AddBulkPv(self.add_bulk_pv_window, self.parameters)
+        self.add_bulk_pv_frame = AddBulkPv(self.add_bulk_pv_window,
+                                           self,
+                                           self.parameters)
         self.add_bulk_pv_window.withdraw()
 
         # The dialog for adding objective functions
@@ -831,13 +833,14 @@ class AddBulkPv(Tkinter.Frame):
     This class is for adding a GROUP PARAMETER.
     """
 
-    def __init__(self, parent, parameters):
+    def __init__(self, parent, main_window, parameters):
 
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
         self.parameters = parameters
         self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+        self.main_window = main_window
 
         self.initUi()
 
@@ -1004,7 +1007,7 @@ class AddBulkPv(Tkinter.Frame):
             print "mpgr to be added: {0}".format([i.mp_label for i in mpgr.mp_representations])
 
             #need to calculate bounds and hence need to use the machine interactor to measure PVs
-            temp_interactor = interactors.modified_interactor(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]], beam_current_bounds=self.parameters.beam_current_bounds)
+            temp_interactor = interactors.dls_machine_interactor_bulk_base_inj_control(param_var_groups=[[i.mp_obj for i in mpgr.mp_representations]], beam_current_bounds=self.parameters.beam_current_bounds)
             initial_mps = temp_interactor.get_mp()
 
             if processed_details[6] == 1:
