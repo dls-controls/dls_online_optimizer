@@ -3,18 +3,14 @@ import math
 
 from cothread.catools import caget
 
-number_of_bunches = None
 
-
-def define_number_of_bunches(new_number_of_bunches):
-    global number_of_bunches
-    number_of_bunches  = new_number_of_bunches
-    print 'NUMBER OF BUNCHES =', number_of_bunches
+# Set before use in gui.py
+NUMBER_OF_BUNCHES = None
 
 
 def bunch_length(I_beam):
-    global number_of_bunches
-    bunch_length_value = 11.85 + 9.55*((I_beam/number_of_bunches)**0.75)
+    print('Number of bunches: {}'.format(NUMBER_OF_BUNCHES))
+    bunch_length_value = 11.85 + 9.55*((I_beam/NUMBER_OF_BUNCHES)**0.75)
     return bunch_length_value
 
 

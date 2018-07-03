@@ -357,7 +357,6 @@ class MainWindow(Tkinter.Frame):
         for sel in self.Tinput_params.selection():
             print('Removing parameter {}'.format(sel))
             for mpgrn, mpgr in enumerate(self.parameters.parameters):
-                print mpgr.list_iid
                 if mpgr.list_iid == sel:
                     self.Tinput_params.delete(sel)
                     del self.parameters.parameters[mpgrn]
@@ -1277,12 +1276,15 @@ class AddLifetime(tkutil.DialogBox):
         self.main_window.parameters.results.append(mrr)
 
         #now retrieve and set beam dynamics using ca_abstraction_mapping.py
-        number_of_bunches = self.i4.get()
-        beam_current_min = self.i5.get()
-        beam_current_max = self.i6.get()
+        number_of_bunches = float(self.i4.get())
+        beam_current_min = float(self.i5.get())
+        beam_current_max = float(self.i6.get())
 
-        ca_abstraction_mapping.define_number_of_bunches(float(number_of_bunches))
-        util.update_beam_current_bounds(float(beam_current_min), float(beam_current_max))
+        # Set variable for use in lifetime_proxy_function
+        print('setting number of bunches to {}'.format(number_of_bunches))
+        ca_abstraction_mapping.NUMBER_OF_BUNCHES = number_of_bunches
+        self.main_window.parameters.beam_current_bounds = beam_current_min, beam_current_max
+
         self.main_window.focus_set()
         self.destroy()
 
