@@ -729,7 +729,7 @@ class import_algo_final_plot(Tkinter.Frame):
         """
         global store_address
 
-        self.parent.title("MOSA results")
+        self.parent.title("NSGA-II results")
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
