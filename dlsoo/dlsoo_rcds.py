@@ -7,7 +7,8 @@ from dlsoo import plot, util
 import Tkinter
 import ttk
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 #define a global store address so that the program can store the fronts for plotting
@@ -542,8 +543,8 @@ class import_algo_prog_plot(Tkinter.Frame):
         self.b.set_ylabel('Objective Function')
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas2 = FigureCanvasTkAgg(self.fig2, self)
-        self.canvas.show()
-        self.canvas2.show()
+        self.canvas.draw()
+        self.canvas2.draw()
         self.canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
         self.canvas2.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
@@ -565,8 +566,8 @@ class import_algo_prog_plot(Tkinter.Frame):
             self.b.plot(searchPlotData[0], searchPlotData[2])
 
         #self.canvas = FigureCanvasTkAgg(self.fig, self.parent)
-        self.canvas.show()
-        self.canvas2.show()
+        self.canvas.draw()
+        self.canvas2.draw()
 
 class import_algo_final_plot(Tkinter.Frame):
 
@@ -697,9 +698,9 @@ class final_plot(Tkinter.Frame):
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)
-        canvas.show()
+        canvas.draw()
         canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
-        toolbar = NavigationToolbar2TkAgg(canvas, self)
+        toolbar = NavigationToolbar2Tk(canvas, self)
         toolbar.update()
         canvas._tkcanvas.pack(side=Tkinter.TOP, fill=Tkinter.BOTH, expand=True)

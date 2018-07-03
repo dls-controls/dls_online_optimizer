@@ -14,7 +14,8 @@ import ttk
 from scipy import spatial
 from dlsoo import plot
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 #------------------------------------------------------GLOBAL VARIABLES AND USEFUL FUNCTIONS-------------------------------------------------------#
@@ -610,7 +611,7 @@ class import_algo_prog_plot(Tkinter.Frame):
         self.a = self.fig.add_subplot(111)
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
-        self.canvas.show()
+        self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
     def update(self):
@@ -626,7 +627,7 @@ class import_algo_prog_plot(Tkinter.Frame):
 
         plot.plot_pareto_fronts(file_names, self.a, self.axis_labels, self.signConverter)
 
-        self.canvas.show()
+        self.canvas.draw()
 
 #--------------------------------------------------------------- CLASS FOR FINAL RESULTS WINDOW --------------------------------------------------------#
 
@@ -792,9 +793,9 @@ class final_plot(Tkinter.Frame):
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)
-        canvas.show()
+        canvas.draw()
         canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
-        toolbar = NavigationToolbar2TkAgg(canvas, self)
+        toolbar = NavigationToolbar2Tk(canvas, self)
         toolbar.update()
         canvas._tkcanvas.pack(side=Tkinter.TOP, fill=Tkinter.BOTH, expand=True)

@@ -201,7 +201,7 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
     #a different view mode using the same method but with different colours
     elif view_mode == "Best focus":
 
-        ax.set_axis_bgcolor('black')
+        ax.set_facecolor('black')
         greys = numpy.linspace(0.5, 0.9, len(fs) - 1)
 
         for nf, f in enumerate(fs):
