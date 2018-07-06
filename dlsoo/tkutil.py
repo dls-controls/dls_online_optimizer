@@ -23,6 +23,7 @@ class DialogBox(Tkinter.Toplevel):
         pass
 
     def centre_in_parent(self):
+        self._parent.update()
         # update own geometry so we can calculate positions
         self.update()
         # centre inside parent widget

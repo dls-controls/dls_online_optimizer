@@ -121,19 +121,7 @@ class MainWindow(Tkinter.Frame):
         """
         self.parent.protocol('WM_DELETE_WINDOW', self.close)
 
-        # The dialog for adding input parameters
-        self.add_pv = AddPv(self, self.parameters)
-        self.add_pv.hide()
-        # The dialog for adding a lifetime proxy
-        self.add_lifetime = AddLifetime(self)
-        self.add_lifetime.hide()
 
-        # The dialog for adding input group parameters
-        self.add_bulk_pv_window = Tkinter.Toplevel(self.parent)
-        self.add_bulk_pv_frame = AddBulkPv(self.add_bulk_pv_window,
-                                           self,
-                                           self.parameters)
-        self.add_bulk_pv_window.withdraw()
 
         # The dialog for adding objective functions
         self.add_obj_func_window = Tkinter.Toplevel(self.parent)
@@ -238,6 +226,16 @@ class MainWindow(Tkinter.Frame):
         self.btn_load_config.grid(row=8, column=0, sticky=Tkinter.E+Tkinter.W)
         self.btn_save_config = Tkinter.Button(self.parent, text="Save configuration", command=self.save_config)
         self.btn_save_config.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
+
+        # The dialog for adding input parameters
+        self.add_pv = AddPv(self, self.parameters)
+        self.add_pv.hide()
+        # The dialog for adding input group parameters
+        self.add_bulk_pv = AddBulkPv(self, self.parameters)
+        self.add_bulk_pv.hide()
+        # The dialog for adding a lifetime proxy
+        self.add_lifetime = AddLifetime(self)
+        self.add_lifetime.hide()
 
     def close(self):
         self.parent.destroy()
@@ -347,7 +345,7 @@ class MainWindow(Tkinter.Frame):
         self.add_pv.restore()
 
     def show_add_bulk_pv_window(self):
-        self.add_bulk_pv_window.deiconify()
+        self.add_bulk_pv.restore()
 
     def show_add_obj_func_window(self):
         self.add_obj_func_window.deiconify()
@@ -822,78 +820,74 @@ class AddPv(tkutil.DialogBox):
         self.hide()
 
 
-class AddBulkPv(Tkinter.Frame):
+class AddBulkPv(tkutil.DialogBox):
     """
     This class is for adding a GROUP PARAMETER.
     """
 
-    def __init__(self, parent, main_window, parameters):
-
-        Tkinter.Frame.__init__(self, parent)
-
-        self.parent = parent
-        self.parameters = parameters
-        self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+    def __init__(self, main_window, parameters):
+        tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
+        self.parameters = parameters
+        self.title("Add Bulk Parameter PVs")
 
-        self.initUi()
-
-    def initUi(self):
+    def create_body(self):
         """
         define the 'Add Bulk Parameter PVs' GUI
         """
+        self.frame = Tkinter.Frame(self)
 
-        self.parent.title("Add Bulk Parameter PVs")
         self.setting_mode = Tkinter.IntVar()            #this is for which method of defining the parameter bounds is being used
         self.setting_mode.set(1)
 
 
-        Tkinter.Label(self.parent, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
-        self.i6 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
+        self.i6 = Tkinter.Entry(self.frame)
         self.i6.grid(row=0, column=1, columnspan=2, sticky=Tkinter.W+Tkinter.E, pady=(10, 0), padx=(0, 10))
 
-        Tkinter.Label(self.parent, text="Group file (optional):").grid(row=1, column=0, sticky=Tkinter.E)
-        self.i_file_address = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Group file (optional):").grid(row=1, column=0, sticky=Tkinter.E)
+        self.i_file_address = Tkinter.Entry(self.frame)
         self.i_file_address.grid(row=1, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
-        self.btn_browse_file_address = Tkinter.Button(self.parent, text="Add group file...", command=self.browse_save_location)
+        self.btn_browse_file_address = Tkinter.Button(self.frame, text="Add group file...", command=self.browse_save_location)
         self.btn_browse_file_address.grid(row=1, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=2, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+        ttk.Separator(self.frame, orient='horizontal').grid(row=2, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
-        Tkinter.Label(self.parent, text="PV addresses:").grid(row=3, column=0, sticky=Tkinter.E+Tkinter.W)
-        Tkinter.Label(self.parent, text="Lower bounds:").grid(row=3, column=1, sticky=Tkinter.E+Tkinter.W)
-        Tkinter.Label(self.parent, text="Upper bounds:").grid(row=3, column=2, sticky=Tkinter.E+Tkinter.W)
+        Tkinter.Label(self.frame, text="PV addresses:").grid(row=3, column=0, sticky=Tkinter.E+Tkinter.W)
+        Tkinter.Label(self.frame, text="Lower bounds:").grid(row=3, column=1, sticky=Tkinter.E+Tkinter.W)
+        Tkinter.Label(self.frame, text="Upper bounds:").grid(row=3, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.i0 = Tkinter.Text(self.parent, width=40)
+        self.i0 = Tkinter.Text(self.frame, width=40)
         self.i0.grid(row=4, column=0, sticky=Tkinter.E+Tkinter.W)
-        self.i1 = Tkinter.Text(self.parent, width=40)
+        self.i1 = Tkinter.Text(self.frame, width=40)
         self.i1.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
-        self.i2 = Tkinter.Text(self.parent, width=40)
+        self.i2 = Tkinter.Text(self.frame, width=40)
         self.i2.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Change:").grid(row=5, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="Change:").grid(row=5, column=0, sticky=Tkinter.E)
 
-        self.i4 = Tkinter.Entry(self.parent)
+        self.i4 = Tkinter.Entry(self.frame)
         self.i4.grid(row=5, column=1, sticky=Tkinter.E+Tkinter.W)
 
-        self.i5 = Tkinter.Entry(self.parent)
+        self.i5 = Tkinter.Entry(self.frame)
         self.i5.grid(row=5, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Delay:").grid(row=6, column=0, sticky=Tkinter.E)
-        self.i3 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Delay:").grid(row=6, column=0, sticky=Tkinter.E)
+        self.i3 = Tkinter.Entry(self.frame)
         self.i3.grid(row=6, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.r0 = Tkinter.Radiobutton(self.parent, text="Define PV Change", variable=self.setting_mode, value=0)
+        self.r0 = Tkinter.Radiobutton(self.frame, text="Define PV Change", variable=self.setting_mode, value=0)
         self.r0.grid(row=7, column=1)
 
-        self.r2 = Tkinter.Radiobutton(self.parent, text="Define PV Bounds", variable=self.setting_mode, value=1)
+        self.r2 = Tkinter.Radiobutton(self.frame, text="Define PV Bounds", variable=self.setting_mode, value=1)
         self.r2.grid(row=7, column=0)
 
-        self.b0 = Tkinter.Button(self.parent, text="Cancel", command=self.parent.withdraw)
+        self.b0 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
         self.b0.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.parent, text="Add", command=self.add_pvs)
+        self.b1 = Tkinter.Button(self.frame, text="Add", command=self.add_pvs)
         self.b1.grid(row=8, column=2, sticky=Tkinter.E+Tkinter.W)
+        self.frame.pack()
 
     def browse_save_location(self):
         """
@@ -1050,11 +1044,7 @@ class AddBulkPv(Tkinter.Frame):
             mpgr.ap_label = self.i6.get()
             self.parameters.parameters.append(mpgr)
 
-            self.parent.withdraw()
-
-    def x_button(self):
-        print "Exited"
-        self.parent.withdraw()
+            self.hide()
 
 
 class StripPlot(Tkinter.Frame):
@@ -1223,7 +1213,6 @@ class AddLifetime(tkutil.DialogBox):
     """
 
     def __init__(self, main_window):
-        print "INIT: Lifetime proxy window"
         tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
         self.title('Add Lifetime PV')
