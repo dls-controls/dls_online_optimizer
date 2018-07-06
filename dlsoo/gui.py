@@ -121,15 +121,6 @@ class MainWindow(Tkinter.Frame):
         """
         self.parent.protocol('WM_DELETE_WINDOW', self.close)
 
-
-
-        # The dialog for adding objective functions
-        self.add_obj_func_window = Tkinter.Toplevel(self.parent)
-        self.add_obj_func_frame = AddObjFunc(self.add_obj_func_window,
-                self,
-                self.parameters.results)
-        self.add_obj_func_window.withdraw()
-
         # The dialog showing calculation progress
         self.progress_window = Tkinter.Toplevel(self.parent)
         self.progress_frame = ShowProgress(self.progress_window,
@@ -233,6 +224,9 @@ class MainWindow(Tkinter.Frame):
         # The dialog for adding input group parameters
         self.add_bulk_pv = AddBulkPv(self, self.parameters)
         self.add_bulk_pv.hide()
+        # The dialog for adding an objective
+        self.add_obj_func = AddObjFunc(self, self.parameters.results)
+        self.add_obj_func.hide()
         # The dialog for adding a lifetime proxy
         self.add_lifetime = AddLifetime(self)
         self.add_lifetime.hide()
@@ -714,7 +708,6 @@ class AddPv(tkutil.DialogBox):
     """
 
     def __init__(self, main_window, parameters):
-        print "INIT: Single Parameter window"
         tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
         self.parameters = parameters
@@ -1324,74 +1317,66 @@ class AddLifetime(tkutil.DialogBox):
         self.hide()
 
 
-class AddObjFunc(Tkinter.Frame):
-    """
-    This class is for adding a OBJECTIVES.
-    """
+class AddObjFunc(tkutil.DialogBox):
+    """This class is for adding an objective."""
 
-    def __init__(self, parent, main_window, results):
-        print "INIT: Objective window"
-        Tkinter.Frame.__init__(self, parent)
-
-        self.parent = parent
-        self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+    def __init__(self, main_window, results):
+        tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
         self.results = results
+        self.title('Add objective PV')
 
-        self.initUi()
+    def create_body(self):
+        """Define 'Add Objective PV' GUI"""
+        self.frame = Tkinter.Frame(self)
 
-    def initUi(self):
-        """
-        Define 'Add Objective PV' GUI
-        """
-
-        self.parent.title("Add Objective PV")
         self.max_min_setting = Tkinter.IntVar()
         self.max_min_setting.set(0)                 #this setting is for choosing whether objective will maximised or minimised
 
         self.inj_setting = Tkinter.IntVar()
         self.inj_setting.set(0)  # 0 means don't inject, 1 means inject
 
-        Tkinter.Label(self.parent, text="PV address:").grid(row=0, column=0,
+        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0,
                                                             sticky=Tkinter.E)
-        self.i0 = Tkinter.Entry(self.parent)
+        self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Min. count:").grid(row=1, column=0,
+        Tkinter.Label(self.frame, text="Min. count:").grid(row=1, column=0,
                                                             sticky=Tkinter.E)
-        self.i1 = Tkinter.Entry(self.parent)
+        self.i1 = Tkinter.Entry(self.frame)
         self.i1.grid(row=1, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Delay /s:").grid(row=2, column=0,
+        Tkinter.Label(self.frame, text="Delay /s:").grid(row=2, column=0,
                                                           sticky=Tkinter.E)
-        self.i2 = Tkinter.Entry(self.parent)
+        self.i2 = Tkinter.Entry(self.frame)
         self.i2.grid(row=2, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        self.r0 = Tkinter.Radiobutton(self.parent, text="Minimise",
+        self.r0 = Tkinter.Radiobutton(self.frame, text="Minimise",
                                       variable=self.max_min_setting, value=0)
         self.r0.grid(row=3, column=0, sticky=Tkinter.W)
-        self.r1 = Tkinter.Radiobutton(self.parent, text="Maximise",
+        self.r1 = Tkinter.Radiobutton(self.frame, text="Maximise",
                                       variable=self.max_min_setting, value=1)
         self.r1.grid(row=3, column=1, sticky=Tkinter.W)
 
-        self.r2 = Tkinter.Radiobutton(self.parent, text="Non-injection",
+        self.r2 = Tkinter.Radiobutton(self.frame, text="Non-injection",
                                       variable=self.inj_setting, value=0)
         self.r2.grid(row=4, column=0, sticky=Tkinter.W)
 
-        self.r3 = Tkinter.Radiobutton(self.parent, text="Injection",
+        self.r3 = Tkinter.Radiobutton(self.frame, text="Injection",
                                       variable=self.inj_setting, value=1)
         self.r3.grid(row=4, column=1, sticky=Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.parent, text="Cancel",
-                                 command=self.x_button)
+        self.b1 = Tkinter.Button(self.frame, text="Cancel",
+                                 command=self.hide)
         self.b1.grid(row=5, column=1, sticky=Tkinter.E + Tkinter.W)
-        self.b2 = Tkinter.Button(self.parent, text="OK",
+        self.b2 = Tkinter.Button(self.frame, text="OK",
                                  command=self.add_pv_to_list)
         self.b2.grid(row=5, column=2, sticky=Tkinter.E + Tkinter.W)
 
+        self.frame.pack()
 
     def add_pv_to_list(self):
         """
@@ -1433,9 +1418,4 @@ class AddObjFunc(Tkinter.Frame):
         mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
 
         self.main_window.parameters.results.append(mrr)
-        self.parent.withdraw()
-
-    def x_button(self):
-        print "Exited"
-        self.parent.focus_set()
-        self.parent.withdraw()
+        self.hide()
