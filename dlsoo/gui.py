@@ -153,9 +153,9 @@ class MainWindow(Tkinter.Frame):
         self.Tinput_params.grid(row=0, column=0, columnspan=3)
 
         #OBJECTIVE COLUMNS
-        self.Toutput_params = ttk.Treeview(self.parent, columns=("counts", "delay", "maxmin", "inj"))
-        self.Toutput_params.column("counts", width=120)
-        self.Toutput_params.heading("counts", text="Min. Counts")
+        self.Toutput_params = ttk.Treeview(self.parent, columns=("measurements", "delay", "maxmin", "inj"))
+        self.Toutput_params.column("measurements", width=120)
+        self.Toutput_params.heading("measurements", text="Measurements")
         self.Toutput_params.column("delay", width=120)
         self.Toutput_params.heading("delay", text="Delay /s")
         self.Toutput_params.column("maxmin", width=80)
@@ -1228,7 +1228,7 @@ class AddLifetime(tkutil.DialogBox):
         self.i0.insert(0, 'lifetime_proxy')
         self.i0['state'] = 'disabled'                   #the PV address must be 'lifetime_proxy'
 
-        Tkinter.Label(self.frame, text="Min. count:").grid(row=1, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="Measurements:").grid(row=1, column=0, sticky=Tkinter.E)
         self.i1 = Tkinter.Entry(self.frame)
         self.i1.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
@@ -1342,7 +1342,7 @@ class AddObjFunc(tkutil.DialogBox):
         self.i0.grid(row=0, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.frame, text="Min. count:").grid(row=1, column=0,
+        Tkinter.Label(self.frame, text="Measurements:").grid(row=1, column=0,
                                                             sticky=Tkinter.E)
         self.i1 = Tkinter.Entry(self.frame)
         self.i1.grid(row=1, column=1, columnspan=2,
