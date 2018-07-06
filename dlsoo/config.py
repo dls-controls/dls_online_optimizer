@@ -13,6 +13,7 @@ class DlsMeasurementVar:
         self.pv = pv
         self.min_counts = min_counts
         self.delay = delay
+        self.inj_setting = None
 
 
 class Parameters(object):
@@ -58,6 +59,9 @@ class Parameters(object):
 
         self.parameters = []
         self.results = []
+
+        # for injection control
+        self.beam_current_bounds = None
         self.reset()
 
     def reset(self):
@@ -82,12 +86,12 @@ class MpGroupRepresentation(object):
 
 class MpRepresentation(object):
     """
-    Machine parameter
+    Machine parameter - PV to be changed
     """
 
     def __init__(self):
 
-        self.mp_obj = None
+        self.mp_obj = None  # DlsParamVar
         self.list_iid = None
         self.mp_label = None
 
@@ -99,7 +103,7 @@ class MrRepresentation(object):
 
     def __init__(self):
 
-        self.mr_obj = None
+        self.mr_obj = None  # DlsMeasurementVar
         self.list_iid = None
         self.mr_label = None
         self.ar_label = None

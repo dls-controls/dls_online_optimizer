@@ -122,10 +122,6 @@ def plot_pareto_fronts(file_names, ax, axis_labels, signConverter):
     ax.set_ylabel(axis_labels[1])
 
 
-
-
-
-
 def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, callback, view_mode, signConverter, initial_measurements=None):
     """
     This is used in the final results plot

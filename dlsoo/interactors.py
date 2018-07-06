@@ -9,7 +9,6 @@ from . import model, util
 import cothread
 from cothread.catools import caput
 import pickle
-import time
 
 
 class dls_machine_interactor_bulk_base:
@@ -402,14 +401,14 @@ class sim_machine_interactor_bulk_base:
 
 class dls_machine_interactor_bulk_base_inj_control:
 
-    def __init__(self, param_var_groups=None, measurement_vars_noinj=None,
-                 measurement_vars_inj=None, set_relative=None,
-                 beam_current_bounds=None):
+    def __init__(self, param_var_groups=None, measurement_vars=None,
+                 set_relative=None, results=None):
 
         self.param_var_groups = param_var_groups
-        self.measurement_vars_noinj = measurement_vars_noinj
-        self.measurement_vars_inj = measurement_vars_inj
-        self.beam_current_bounds = beam_current_bounds
+        self.measurement_vars = measurement_vars
+        self.measurement_vars_noinj = [mv for mv in measurement_vars if not mv.inj_setting]
+        self.measurement_vars_inj = [mv for mv in measurement_vars if mv.inj_setting]
+        self.beam_current_bounds = None
 
         self.param_vars = []
         for group in self.param_var_groups:
@@ -427,7 +426,8 @@ class dls_machine_interactor_bulk_base_inj_control:
             self.initial_values = self.get_mp()
             self.set_relative = set_relative
 
-        ''' We create a dictionary to store the input ap keys, with the output mp values '''
+        # We create a dictionary to store the input ap keys,
+        # with the output mp values
         self.ap_to_mp_store = {}
 
     def save_details_file(self):
@@ -495,7 +495,7 @@ class dls_machine_interactor_bulk_base_inj_control:
 
         return mps
 
-    # -------------------------- MOST IMPORTANT FUNCTION IN CLASS FOR INJECTION CONTROL ----------------------#
+    # - MOST IMPORTANT FUNCTION IN CLASS FOR INJECTION CONTROL - #
 
     def get_mr(self):
         get_command = util.abstract_caget
@@ -509,21 +509,23 @@ class dls_machine_interactor_bulk_base_inj_control:
         caput('LI-TI-MTGEN-01:START', 0)
         cothread.Sleep(4.0)
 
-        beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
-        while beam_current < self.beam_current_bounds[0]:
-            print 'waiting for beam current to rise above ', \
-                self.beam_current_bounds[0]
-            cothread.Sleep(1)
+        if self.beam_current_bounds is not None:
             beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
-            print '...'
+            while beam_current < self.beam_current_bounds[0]:
+                print 'waiting for beam current to rise above ', \
+                    self.beam_current_bounds[0]
+                cothread.Sleep(1)
+                beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
+                print '...'
 
         mrs_inj = util.measure_results(self.measurement_vars_inj,
                                        util.abstract_caget)
 
         # Now for the non-injection measurements
 
-        if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
-            beam_current_max_warning = True
+        if self.beam_current_bounds is not None:
+            if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
+                beam_current_max_warning = True
 
         # Stop injection
         print "Stop injection"
@@ -541,7 +543,7 @@ class dls_machine_interactor_bulk_base_inj_control:
 
         mrs = results
 
-        return mrs, beam_current_max_warning
+        return mrs
 
     # -----------------------------------------------------------------------
 
@@ -555,9 +557,9 @@ class dls_machine_interactor_bulk_base_inj_control:
         return aps
 
     def get_ar(self):
-        mrs, beam_current_warnings = self.get_mr()
+        mrs = self.get_mr()
         ars = self.mr_to_ar(mrs)
-        return ars, beam_current_warnings
+        return ars
 
     def find_a_bounds(self, param_var_min, param_var_max):
 

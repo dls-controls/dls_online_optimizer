@@ -342,7 +342,7 @@ class MainWindow(Tkinter.Frame):
         self.add_bulk_pv.restore()
 
     def show_add_obj_func_window(self):
-        self.add_obj_func_window.deiconify()
+        self.add_obj_func.restore()
 
     def show_add_lifetime_window(self):
         # The dialog for changing lifetime options
@@ -423,6 +423,7 @@ class MainWindow(Tkinter.Frame):
 
             self.algorithm_settings_frame.load_algo_frame(optimiser_wrapper_address)
             self.algorithm_settings_frame.set_up()
+            self.algorithm_settings_frame.centre_in_parent()
 
     def load_config(self):
         """
@@ -595,7 +596,7 @@ class AlgorithmSettings(tkutil.DialogBox):
 
     def __init__(self, main_window, parameters, progress_frame):
 
-        tkutil.DialogBox.__init__(self, main_window)
+        tkutil.DialogBox.__init__(self, main_window.parent)
         self.title("Algorithm settings")
         self.main_window = main_window
         self.parameters = parameters
@@ -658,6 +659,10 @@ class AlgorithmSettings(tkutil.DialogBox):
     def start(self, algo_settings):
         mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
                 for mpgr in self.parameters.parameters]          #gather machine parameters
+        mr_addresses = []
+        for mrr in self.parameters.results:
+            mr_addresses.append(mrr.mr_obj)
+            mrr.mr_obj.inj_setting = mrr.inj_setting
         mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
         relative_settings = [mpgr.relative_setting for mpgr in
                 self.parameters.parameters]                               #gather bounds for machine parameters
@@ -672,7 +677,7 @@ class AlgorithmSettings(tkutil.DialogBox):
                 self.parameters.signConverter.append(1)
 
         #define the appropriate interactor depending on using machine or simulator
-        interactor_class = (interactors.dls_machine_interactor_bulk_base
+        interactor_class = (interactors.dls_machine_interactor_bulk_base_inj_control
                             if self.parameters.useMachine
                             else interactors.sim_machine_interactor_bulk_base)
         self.parameters.interactor = interactor_class(
@@ -681,6 +686,7 @@ class AlgorithmSettings(tkutil.DialogBox):
             set_relative=relative_settings,
             results=self.parameters.results
         )
+        self.parameters.interactor.beam_current_bounds = self.parameters.beam_current_bounds
 
         #save the interactor object to file (used in post_analysis file)
         util.save_object(self.parameters.interactor,

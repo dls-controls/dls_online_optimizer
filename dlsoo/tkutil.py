@@ -34,14 +34,14 @@ class DialogBox(Tkinter.Toplevel):
 
     def cancel(self, event=None):
         """Destroy the window"""
+        self.grab_release()
         self._parent.focus_set()
-        self._parent.grab_set()
         self.destroy()
 
     def hide(self, event=None):
         """Hide the window"""
+        self.grab_release()
         self._parent.focus_set()
-        self._parent.grab_set()
         self.withdraw()
 
     def raise_to_top(self):
