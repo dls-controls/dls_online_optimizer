@@ -28,6 +28,7 @@ ansi_normal = "\x1B[0m"
 # cache of solutions
 memo = {}
 
+
 class solution(tuple):
     pass
 
@@ -328,9 +329,7 @@ class Optimiser(object):
         return (done, todo)
 
     def evaluate(self, pop):
-
         "evaluate population"
-        #print "POP: {0}".format(pop)
         # now add memoization
         result = []
 

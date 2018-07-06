@@ -120,24 +120,6 @@ class MainWindow(Tkinter.Frame):
         Generate the GUI
         """
         self.parent.protocol('WM_DELETE_WINDOW', self.close)
-        # The dialog for adding input parameters
-        self.add_pv_window = Tkinter.Toplevel(self.parent)
-        self.add_pv_frame = AddPv(self.add_pv_window, self, self.parameters)
-        self.add_pv_window.withdraw()
-
-        # The dialog for adding input group parameters
-        self.add_bulk_pv_window = Tkinter.Toplevel(self.parent)
-        self.add_bulk_pv_frame = AddBulkPv(self.add_bulk_pv_window,
-                                           self,
-                                           self.parameters)
-        self.add_bulk_pv_window.withdraw()
-
-        # The dialog for adding objective functions
-        self.add_obj_func_window = Tkinter.Toplevel(self.parent)
-        self.add_obj_func_frame = AddObjFunc(self.add_obj_func_window,
-                self,
-                self.parameters.results)
-        self.add_obj_func_window.withdraw()
 
         # The dialog showing calculation progress
         self.progress_window = Tkinter.Toplevel(self.parent)
@@ -171,9 +153,9 @@ class MainWindow(Tkinter.Frame):
         self.Tinput_params.grid(row=0, column=0, columnspan=3)
 
         #OBJECTIVE COLUMNS
-        self.Toutput_params = ttk.Treeview(self.parent, columns=("counts", "delay", "maxmin", "inj"))
-        self.Toutput_params.column("counts", width=120)
-        self.Toutput_params.heading("counts", text="Min. Counts")
+        self.Toutput_params = ttk.Treeview(self.parent, columns=("measurements", "delay", "maxmin", "inj"))
+        self.Toutput_params.column("measurements", width=120)
+        self.Toutput_params.heading("measurements", text="Measurements")
         self.Toutput_params.column("delay", width=120)
         self.Toutput_params.heading("delay", text="Delay /s")
         self.Toutput_params.column("maxmin", width=80)
@@ -235,6 +217,19 @@ class MainWindow(Tkinter.Frame):
         self.btn_load_config.grid(row=8, column=0, sticky=Tkinter.E+Tkinter.W)
         self.btn_save_config = Tkinter.Button(self.parent, text="Save configuration", command=self.save_config)
         self.btn_save_config.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
+
+        # The dialog for adding input parameters
+        self.add_pv = AddPv(self, self.parameters)
+        self.add_pv.hide()
+        # The dialog for adding input group parameters
+        self.add_bulk_pv = AddBulkPv(self, self.parameters)
+        self.add_bulk_pv.hide()
+        # The dialog for adding an objective
+        self.add_obj_func = AddObjFunc(self, self.parameters.results)
+        self.add_obj_func.hide()
+        # The dialog for adding a lifetime proxy
+        self.add_lifetime = AddLifetime(self)
+        self.add_lifetime.hide()
 
     def close(self):
         self.parent.destroy()
@@ -340,19 +335,18 @@ class MainWindow(Tkinter.Frame):
         if save_location:
             self.validate_save_location(save_location)
 
-    #next three functions make associated windows appear on screen
     def show_add_pv_window(self):
-        self.add_pv_window.deiconify()
+        self.add_pv.restore()
 
     def show_add_bulk_pv_window(self):
-        self.add_bulk_pv_window.deiconify()
+        self.add_bulk_pv.restore()
 
     def show_add_obj_func_window(self):
-        self.add_obj_func_window.deiconify()
+        self.add_obj_func.restore()
 
     def show_add_lifetime_window(self):
         # The dialog for changing lifetime options
-        self.add_lifetime = AddLifetime(self)
+        self.add_lifetime.restore()
 
     #next two functions remove Parameters and Objectives from list (if required)
     def remove_pv(self):
@@ -429,6 +423,7 @@ class MainWindow(Tkinter.Frame):
 
             self.algorithm_settings_frame.load_algo_frame(optimiser_wrapper_address)
             self.algorithm_settings_frame.set_up()
+            self.algorithm_settings_frame.centre_in_parent()
 
     def load_config(self):
         """
@@ -601,7 +596,7 @@ class AlgorithmSettings(tkutil.DialogBox):
 
     def __init__(self, main_window, parameters, progress_frame):
 
-        tkutil.DialogBox.__init__(self, main_window)
+        tkutil.DialogBox.__init__(self, main_window.parent)
         self.title("Algorithm settings")
         self.main_window = main_window
         self.parameters = parameters
@@ -664,6 +659,10 @@ class AlgorithmSettings(tkutil.DialogBox):
     def start(self, algo_settings):
         mp_addresses = [[mpr.mp_obj for mpr in mpgr.mp_representations]
                 for mpgr in self.parameters.parameters]          #gather machine parameters
+        mr_addresses = []
+        for mrr in self.parameters.results:
+            mr_addresses.append(mrr.mr_obj)
+            mrr.mr_obj.inj_setting = mrr.inj_setting
         mr_addresses = [mrr.mr_obj for mrr in self.parameters.results]                                                   #gather machine results (objectives)
         relative_settings = [mpgr.relative_setting for mpgr in
                 self.parameters.parameters]                               #gather bounds for machine parameters
@@ -678,7 +677,7 @@ class AlgorithmSettings(tkutil.DialogBox):
                 self.parameters.signConverter.append(1)
 
         #define the appropriate interactor depending on using machine or simulator
-        interactor_class = (interactors.dls_machine_interactor_bulk_base
+        interactor_class = (interactors.dls_machine_interactor_bulk_base_inj_control
                             if self.parameters.useMachine
                             else interactors.sim_machine_interactor_bulk_base)
         self.parameters.interactor = interactor_class(
@@ -687,6 +686,7 @@ class AlgorithmSettings(tkutil.DialogBox):
             set_relative=relative_settings,
             results=self.parameters.results
         )
+        self.parameters.interactor.beam_current_bounds = self.parameters.beam_current_bounds
 
         #save the interactor object to file (used in post_analysis file)
         util.save_object(self.parameters.interactor,
@@ -708,57 +708,52 @@ class AlgorithmSettings(tkutil.DialogBox):
         self.main_window.run_optimisation()
 
 
-class AddPv(Tkinter.Frame):
+class AddPv(tkutil.DialogBox):
     """
     This class is for adding a SINGLE PARAMETER.
     """
 
-    def __init__(self, parent, main_window, parameters):
-        print "INIT: Single Parameter window"
-        Tkinter.Frame.__init__(self, parent)
-
-        self.parent = parent
-        self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+    def __init__(self, main_window, parameters):
+        tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
         self.parameters = parameters
+        self.title('Add parameter PV')
 
-        self.initUi()
+    def create_body(self):
+        self.frame = Tkinter.Frame(self)
 
-    def initUi(self):
-        """
-        Define the 'add parameter PV' GUI
-        """
-
-        self.parent.title("Add Parameter PV")
+        self.title("Add Parameter PV")
         self.setting_mode = Tkinter.IntVar()
         self.setting_mode.set(0)
 
-        Tkinter.Label(self.parent, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
-        self.i0 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
+        self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Lower bound/change:").grid(row=1, column=0, sticky=Tkinter.E)
-        self.i1 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Lower bound/change:").grid(row=1, column=0, sticky=Tkinter.E)
+        self.i1 = Tkinter.Entry(self.frame)
         self.i1.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Upper bound/change:").grid(row=2, column=0, sticky=Tkinter.E)
-        self.i2 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Upper bound/change:").grid(row=2, column=0, sticky=Tkinter.E)
+        self.i2 = Tkinter.Entry(self.frame)
         self.i2.grid(row=2, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Delay /s:").grid(row=3, column=0, sticky=Tkinter.E)
-        self.i3 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Delay /s:").grid(row=3, column=0, sticky=Tkinter.E)
+        self.i3 = Tkinter.Entry(self.frame)
         self.i3.grid(row=3, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.r0 = Tkinter.Radiobutton(self.parent, text="Define PV bounds", variable=self.setting_mode, value=0)
+        self.r0 = Tkinter.Radiobutton(self.frame, text="Define PV bounds", variable=self.setting_mode, value=0)
         self.r0.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
 
-        self.r1 = Tkinter.Radiobutton(self.parent, text="Define PV change", variable=self.setting_mode, value=1)
+        self.r1 = Tkinter.Radiobutton(self.frame, text="Define PV change", variable=self.setting_mode, value=1)
         self.r1.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.parent, text="Cancel", command=self.parent.withdraw)
+        self.b1 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
         self.b1.grid(row=5, column=1, sticky=Tkinter.E+Tkinter.W)
-        self.b2 = Tkinter.Button(self.parent, text="OK", command=self.add_pv_to_list)
+        self.b2 = Tkinter.Button(self.frame, text="OK", command=self.add_pv_to_list)
         self.b2.grid(row=5, column=2, sticky=Tkinter.E+Tkinter.W)
+
+        self.frame.pack()
 
     def add_pv_to_list(self):
         """
@@ -821,85 +816,77 @@ class AddPv(Tkinter.Frame):
             #parameter is stored as a group even though its a single parameter
             self.parameters.parameters.append(mpgr)
 
-            self.parent.withdraw()
-
-    def x_button(self):
-        print "Exited"
-        self.parent.withdraw()
+        self.hide()
 
 
-class AddBulkPv(Tkinter.Frame):
+class AddBulkPv(tkutil.DialogBox):
     """
     This class is for adding a GROUP PARAMETER.
     """
 
-    def __init__(self, parent, main_window, parameters):
-
-        Tkinter.Frame.__init__(self, parent)
-
-        self.parent = parent
-        self.parameters = parameters
-        self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+    def __init__(self, main_window, parameters):
+        tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
+        self.parameters = parameters
+        self.title("Add Bulk Parameter PVs")
 
-        self.initUi()
-
-    def initUi(self):
+    def create_body(self):
         """
         define the 'Add Bulk Parameter PVs' GUI
         """
+        self.frame = Tkinter.Frame(self)
 
-        self.parent.title("Add Bulk Parameter PVs")
         self.setting_mode = Tkinter.IntVar()            #this is for which method of defining the parameter bounds is being used
         self.setting_mode.set(1)
 
 
-        Tkinter.Label(self.parent, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
-        self.i6 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
+        self.i6 = Tkinter.Entry(self.frame)
         self.i6.grid(row=0, column=1, columnspan=2, sticky=Tkinter.W+Tkinter.E, pady=(10, 0), padx=(0, 10))
 
-        Tkinter.Label(self.parent, text="Group file (optional):").grid(row=1, column=0, sticky=Tkinter.E)
-        self.i_file_address = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Group file (optional):").grid(row=1, column=0, sticky=Tkinter.E)
+        self.i_file_address = Tkinter.Entry(self.frame)
         self.i_file_address.grid(row=1, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
-        self.btn_browse_file_address = Tkinter.Button(self.parent, text="Add group file...", command=self.browse_save_location)
+        self.btn_browse_file_address = Tkinter.Button(self.frame, text="Add group file...", command=self.browse_save_location)
         self.btn_browse_file_address.grid(row=1, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=2, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+        ttk.Separator(self.frame, orient='horizontal').grid(row=2, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
-        Tkinter.Label(self.parent, text="PV addresses:").grid(row=3, column=0, sticky=Tkinter.E+Tkinter.W)
-        Tkinter.Label(self.parent, text="Lower bounds:").grid(row=3, column=1, sticky=Tkinter.E+Tkinter.W)
-        Tkinter.Label(self.parent, text="Upper bounds:").grid(row=3, column=2, sticky=Tkinter.E+Tkinter.W)
+        Tkinter.Label(self.frame, text="PV addresses:").grid(row=3, column=0, sticky=Tkinter.E+Tkinter.W)
+        Tkinter.Label(self.frame, text="Lower bounds:").grid(row=3, column=1, sticky=Tkinter.E+Tkinter.W)
+        Tkinter.Label(self.frame, text="Upper bounds:").grid(row=3, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.i0 = Tkinter.Text(self.parent, width=40)
+        self.i0 = Tkinter.Text(self.frame, width=40)
         self.i0.grid(row=4, column=0, sticky=Tkinter.E+Tkinter.W)
-        self.i1 = Tkinter.Text(self.parent, width=40)
+        self.i1 = Tkinter.Text(self.frame, width=40)
         self.i1.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
-        self.i2 = Tkinter.Text(self.parent, width=40)
+        self.i2 = Tkinter.Text(self.frame, width=40)
         self.i2.grid(row=4, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Change:").grid(row=5, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="Change:").grid(row=5, column=0, sticky=Tkinter.E)
 
-        self.i4 = Tkinter.Entry(self.parent)
+        self.i4 = Tkinter.Entry(self.frame)
         self.i4.grid(row=5, column=1, sticky=Tkinter.E+Tkinter.W)
 
-        self.i5 = Tkinter.Entry(self.parent)
+        self.i5 = Tkinter.Entry(self.frame)
         self.i5.grid(row=5, column=2, sticky=Tkinter.E+Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Delay:").grid(row=6, column=0, sticky=Tkinter.E)
-        self.i3 = Tkinter.Entry(self.parent)
+        Tkinter.Label(self.frame, text="Delay:").grid(row=6, column=0, sticky=Tkinter.E)
+        self.i3 = Tkinter.Entry(self.frame)
         self.i3.grid(row=6, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.r0 = Tkinter.Radiobutton(self.parent, text="Define PV Change", variable=self.setting_mode, value=0)
+        self.r0 = Tkinter.Radiobutton(self.frame, text="Define PV Change", variable=self.setting_mode, value=0)
         self.r0.grid(row=7, column=1)
 
-        self.r2 = Tkinter.Radiobutton(self.parent, text="Define PV Bounds", variable=self.setting_mode, value=1)
+        self.r2 = Tkinter.Radiobutton(self.frame, text="Define PV Bounds", variable=self.setting_mode, value=1)
         self.r2.grid(row=7, column=0)
 
-        self.b0 = Tkinter.Button(self.parent, text="Cancel", command=self.parent.withdraw)
+        self.b0 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
         self.b0.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.parent, text="Add", command=self.add_pvs)
+        self.b1 = Tkinter.Button(self.frame, text="Add", command=self.add_pvs)
         self.b1.grid(row=8, column=2, sticky=Tkinter.E+Tkinter.W)
+        self.frame.pack()
 
     def browse_save_location(self):
         """
@@ -935,15 +922,24 @@ class AddBulkPv(Tkinter.Frame):
         """
 
         #collect data from GUI
-        details = (self.i0.get(0.0, Tkinter.END), self.i1.get(0.0, Tkinter.END), self.i2.get(0.0, Tkinter.END), self.i4.get(), self.i5.get(), self.i3.get(), self.setting_mode.get())
+        details = (self.i0.get(0.0, Tkinter.END).strip(), 
+                   self.i1.get(0.0, Tkinter.END).strip(), 
+                   self.i2.get(0.0, Tkinter.END).strip(), 
+                   self.i4.get(), 
+                   self.i5.get(), 
+                   self.i3.get(), 
+                   self.setting_mode.get())
         processed_details = [[], [], [], None, None, None, None] # This will contain PVs, lb, ub, lc, uc, delay, and setting_mode
+        print('d1 {}'.format(details[1]))
+        print('d2 {}'.format(details[2]))
 
         for address in details[0].splitlines():
             processed_details[0].append(str(address))
 
-        for lower,  upper in zip(details[1].splitlines(), details[2].splitlines()):
-            processed_details[1].append(lower)
-            processed_details[2].append(upper)
+        if details[1]:
+            processed_details[1] = details[1]
+        if details[2]:
+            processed_details[2] = details[2]
 
         processed_details[3] = details[3]
         processed_details[4] = details[4]
@@ -951,13 +947,16 @@ class AddBulkPv(Tkinter.Frame):
         processed_details[5] = details[5]
         processed_details[6] = details[6]
 
+        for j in range(7):
+            print('{}: {}'.format(j, processed_details[j]))
         # Check that the data is all of the correct format
         good_data = True
         for i in range(len(processed_details[1])):
             try:
                 if processed_details[6] in [0, 1] and processed_details[6] == 1:
                     processed_details[1][i] = float(processed_details[1][i])
-            except:
+            except Exception as e:
+                print(e)
                 tkMessageBox.showerror("Format error with lower bound", "The lower bound value for PV #{0}: \"{1}\", could not be converted to a float. Please check the values you have entered.".format(i+1, processed_details[1][i]))
                 good_data = False
 
@@ -1044,11 +1043,7 @@ class AddBulkPv(Tkinter.Frame):
             mpgr.ap_label = self.i6.get()
             self.parameters.parameters.append(mpgr)
 
-            self.parent.withdraw()
-
-    def x_button(self):
-        print "Exited"
-        self.parent.withdraw()
+            self.hide()
 
 
 class StripPlot(Tkinter.Frame):
@@ -1110,12 +1105,13 @@ class ShowProgress(Tkinter.Frame):
         self.parameters = parameters
         #variables for progress percentage
         self.progress = Tkinter.DoubleVar()
-        self.progress.set(0.00)
+        self.progress.set(0.0)
 
     def initUi(self):
         """
         Define GUI
         """
+        self.progress.set(0.0)
         self.parent.title("Optimising...")
 
         self.rowconfigure(0, weight=1)
@@ -1217,8 +1213,7 @@ class AddLifetime(tkutil.DialogBox):
     """
 
     def __init__(self, main_window):
-        print "INIT: Lifetime proxy window"
-        tkutil.DialogBox.__init__(self, main_window)
+        tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
         self.title('Add Lifetime PV')
 
@@ -1240,7 +1235,7 @@ class AddLifetime(tkutil.DialogBox):
         self.i0.insert(0, 'lifetime_proxy')
         self.i0['state'] = 'disabled'                   #the PV address must be 'lifetime_proxy'
 
-        Tkinter.Label(self.frame, text="Min. count:").grid(row=1, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="Measurements:").grid(row=1, column=0, sticky=Tkinter.E)
         self.i1 = Tkinter.Entry(self.frame)
         self.i1.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
@@ -1275,7 +1270,7 @@ class AddLifetime(tkutil.DialogBox):
         self.i6 = Tkinter.Entry(self.frame)
         self.i6.grid(row=8, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.frame, text="Cancel", command=self.cancel)
+        self.b1 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
         self.b1.grid(row=9, column=1, sticky=Tkinter.E+Tkinter.W)
         self.b2 = Tkinter.Button(self.frame, text="OK", command=self.add_pv_to_list)
         self.b2.grid(row=9, column=2, sticky=Tkinter.E+Tkinter.W)
@@ -1326,82 +1321,69 @@ class AddLifetime(tkutil.DialogBox):
         ca_abstraction_mapping.NUMBER_OF_BUNCHES = number_of_bunches
         self.main_window.parameters.beam_current_bounds = beam_current_min, beam_current_max
 
-        self.main_window.focus_set()
-        self.destroy()
-
-    def x_button(self):
-        print "Exited"
-        self.withdraw()
+        self.hide()
 
 
-class AddObjFunc(Tkinter.Frame):
-    """
-    This class is for adding a OBJECTIVES.
-    """
+class AddObjFunc(tkutil.DialogBox):
+    """This class is for adding an objective."""
 
-    def __init__(self, parent, main_window, results):
-        print "INIT: Objective window"
-        Tkinter.Frame.__init__(self, parent)
-
-        self.parent = parent
-        self.parent.protocol('WM_DELETE_WINDOW', self.x_button)
+    def __init__(self, main_window, results):
+        tkutil.DialogBox.__init__(self, main_window.parent, True)
         self.main_window = main_window
         self.results = results
+        self.title('Add objective PV')
 
-        self.initUi()
+    def create_body(self):
+        """Define 'Add Objective PV' GUI"""
+        self.frame = Tkinter.Frame(self)
 
-    def initUi(self):
-        """
-        Define 'Add Objective PV' GUI
-        """
-
-        self.parent.title("Add Objective PV")
         self.max_min_setting = Tkinter.IntVar()
         self.max_min_setting.set(0)                 #this setting is for choosing whether objective will maximised or minimised
 
         self.inj_setting = Tkinter.IntVar()
         self.inj_setting.set(0)  # 0 means don't inject, 1 means inject
 
-        Tkinter.Label(self.parent, text="PV address:").grid(row=0, column=0,
+        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0,
                                                             sticky=Tkinter.E)
-        self.i0 = Tkinter.Entry(self.parent)
+        self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Min. count:").grid(row=1, column=0,
+        Tkinter.Label(self.frame, text="Measurements:").grid(row=1, column=0,
                                                             sticky=Tkinter.E)
-        self.i1 = Tkinter.Entry(self.parent)
+        self.i1 = Tkinter.Entry(self.frame)
         self.i1.grid(row=1, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        Tkinter.Label(self.parent, text="Delay /s:").grid(row=2, column=0,
+        Tkinter.Label(self.frame, text="Delay /s:").grid(row=2, column=0,
                                                           sticky=Tkinter.E)
-        self.i2 = Tkinter.Entry(self.parent)
+        self.i2 = Tkinter.Entry(self.frame)
         self.i2.grid(row=2, column=1, columnspan=2,
                      sticky=Tkinter.E + Tkinter.W)
 
-        self.r0 = Tkinter.Radiobutton(self.parent, text="Minimise",
+        self.r0 = Tkinter.Radiobutton(self.frame, text="Minimise",
                                       variable=self.max_min_setting, value=0)
         self.r0.grid(row=3, column=0, sticky=Tkinter.W)
-        self.r1 = Tkinter.Radiobutton(self.parent, text="Maximise",
+        self.r1 = Tkinter.Radiobutton(self.frame, text="Maximise",
                                       variable=self.max_min_setting, value=1)
         self.r1.grid(row=3, column=1, sticky=Tkinter.W)
 
-        self.r2 = Tkinter.Radiobutton(self.parent, text="Non-injection",
+        self.r2 = Tkinter.Radiobutton(self.frame, text="Non-injection",
                                       variable=self.inj_setting, value=0)
         self.r2.grid(row=4, column=0, sticky=Tkinter.W)
 
-        self.r3 = Tkinter.Radiobutton(self.parent, text="Injection",
+        self.r3 = Tkinter.Radiobutton(self.frame, text="Injection",
                                       variable=self.inj_setting, value=1)
         self.r3.grid(row=4, column=1, sticky=Tkinter.W)
 
-        self.b1 = Tkinter.Button(self.parent, text="Cancel",
-                                 command=self.parent.withdraw)
+        self.b1 = Tkinter.Button(self.frame, text="Cancel",
+                                 command=self.hide)
         self.b1.grid(row=5, column=1, sticky=Tkinter.E + Tkinter.W)
-        self.b2 = Tkinter.Button(self.parent, text="OK",
+        self.b2 = Tkinter.Button(self.frame, text="OK",
                                  command=self.add_pv_to_list)
         self.b2.grid(row=5, column=2, sticky=Tkinter.E + Tkinter.W)
 
+        self.frame.pack()
 
     def add_pv_to_list(self):
         """
@@ -1443,8 +1425,4 @@ class AddObjFunc(Tkinter.Frame):
         mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
 
         self.main_window.parameters.results.append(mrr)
-        self.parent.withdraw()
-
-    def x_button(self):
-        print "Exited"
-        self.parent.withdraw()
+        self.hide()

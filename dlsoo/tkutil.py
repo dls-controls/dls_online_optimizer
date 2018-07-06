@@ -7,27 +7,55 @@ class DialogBox(Tkinter.Toplevel):
     Generic modal dialog box.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, restorable=False):
         Tkinter.Toplevel.__init__(self, parent)
         self._parent = parent
         self.transient(parent)
         self.grab_set()
         self.focus_set()
         self.create_body()
-        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        self.centre_in_parent()
+        cancel_fn = self.hide if restorable else self.cancel
+        self.protocol("WM_DELETE_WINDOW", cancel_fn)
 
     def create_body(self):
         """To be implemented by subclasses."""
         pass
 
+    def centre_in_parent(self):
+        self._parent.update()
+        # update own geometry so we can calculate positions
+        self.update()
+        # centre inside parent widget
+        x = self._parent.winfo_rootx() + self._parent.winfo_width() / 2 - self.winfo_width() / 2
+        y = self._parent.winfo_rooty() + self._parent.winfo_height() / 2 - self.winfo_height() / 2
+        self.geometry('+{}+{}'.format(x, y))
+        self.update()
+
     def cancel(self, event=None):
+        """Destroy the window"""
+        self.grab_release()
         self._parent.focus_set()
         self.destroy()
+
+    def hide(self, event=None):
+        """Hide the window"""
+        self.grab_release()
+        self._parent.focus_set()
+        self.withdraw()
 
     def raise_to_top(self):
         self.lift()
         self.attributes('-topmost',True)
         self.after_idle(self.attributes,'-topmost',False)
+
+    def restore(self):
+        # Deiconify seems to be resetting the location, so save it for
+        # restoring afterwards.
+        geometry = self.geometry()
+        self.deiconify()
+        self.geometry(geometry)
+
 
 
 class InfoPopup(DialogBox):
