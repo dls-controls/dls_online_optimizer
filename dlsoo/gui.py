@@ -935,15 +935,24 @@ class AddBulkPv(Tkinter.Frame):
         """
 
         #collect data from GUI
-        details = (self.i0.get(0.0, Tkinter.END), self.i1.get(0.0, Tkinter.END), self.i2.get(0.0, Tkinter.END), self.i4.get(), self.i5.get(), self.i3.get(), self.setting_mode.get())
+        details = (self.i0.get(0.0, Tkinter.END).strip(), 
+                   self.i1.get(0.0, Tkinter.END).strip(), 
+                   self.i2.get(0.0, Tkinter.END).strip(), 
+                   self.i4.get(), 
+                   self.i5.get(), 
+                   self.i3.get(), 
+                   self.setting_mode.get())
         processed_details = [[], [], [], None, None, None, None] # This will contain PVs, lb, ub, lc, uc, delay, and setting_mode
+        print('d1 {}'.format(details[1]))
+        print('d2 {}'.format(details[2]))
 
         for address in details[0].splitlines():
             processed_details[0].append(str(address))
 
-        for lower,  upper in zip(details[1].splitlines(), details[2].splitlines()):
-            processed_details[1].append(lower)
-            processed_details[2].append(upper)
+        if details[1]:
+            processed_details[1] = details[1]
+        if details[2]:
+            processed_details[2] = details[2]
 
         processed_details[3] = details[3]
         processed_details[4] = details[4]
@@ -951,13 +960,16 @@ class AddBulkPv(Tkinter.Frame):
         processed_details[5] = details[5]
         processed_details[6] = details[6]
 
+        for j in range(7):
+            print('{}: {}'.format(j, processed_details[j]))
         # Check that the data is all of the correct format
         good_data = True
         for i in range(len(processed_details[1])):
             try:
                 if processed_details[6] in [0, 1] and processed_details[6] == 1:
                     processed_details[1][i] = float(processed_details[1][i])
-            except:
+            except Exception as e:
+                print(e)
                 tkMessageBox.showerror("Format error with lower bound", "The lower bound value for PV #{0}: \"{1}\", could not be converted to a float. Please check the values you have entered.".format(i+1, processed_details[1][i]))
                 good_data = False
 
