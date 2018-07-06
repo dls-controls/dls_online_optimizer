@@ -1099,12 +1099,13 @@ class ShowProgress(Tkinter.Frame):
         self.parameters = parameters
         #variables for progress percentage
         self.progress = Tkinter.DoubleVar()
-        self.progress.set(0.00)
+        self.progress.set(0.0)
 
     def initUi(self):
         """
         Define GUI
         """
+        self.progress.set(0.0)
         self.parent.title("Optimising...")
 
         self.rowconfigure(0, weight=1)
