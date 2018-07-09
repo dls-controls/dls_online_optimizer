@@ -1,11 +1,10 @@
 '''
+fast non-dominated sorting genetic algorithm II
 
 Version 3
 2016-08-01 15:00
 
 '''
-#!/bin/env dls-python
-"fast non-dominated sorting genetic algorithm II"
 
 import random, sys
 import time
@@ -13,23 +12,14 @@ import os
 
 import Tkinter
 import ttk
-import tkMessageBox
 
-import dls_optimiser_plot as plot
-import matplotlib
-matplotlib.use("TkAgg")
+from dlsoo import plot
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-import matplotlib.cm as cm
-import matplotlib.pyplot as pyplot
-from cothread.catools import caget
-
 
 
 store_address = None
 completed_generation = None
-
-
 
 # colour display codes
 ansi_red = "\x1B[31m"
@@ -37,6 +27,7 @@ ansi_normal = "\x1B[0m"
 
 # cache of solutions
 memo = {}
+
 
 class solution(tuple):
     pass
@@ -47,110 +38,103 @@ def crowded_comparison_key(x):
     print x
     return (x.rank, -x.distance)
 
-def nothing_function(data):
-    pass
 
 def remove_prop_duplicates(initial_list):
     new_list = []
     new_list_see = []
-    
-    
+
+
     for i in initial_list:
         i_see = i.x
-        
+
         if i_see not in new_list_see:
             new_list.append(i)
             new_list_see.append(i_see)
-    
+
     return new_list
 
 
-class optimiser:
-    
-    #def __init__(self, interactor, store_location, population_size, generations, param_count, result_count, min_var, max_var, pmut=None, pcross=0.9, eta_m=20, eta_c=20, individuals=None, seed=None, progress_handler=None):
+class Optimiser(object):
+
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, individuals=None, progress_handler=None):
-        
+
         self.memo = {}
-        
+
         self.interactor = interactor
         self.store_location = store_location
         self.population_size = settings_dict['pop_size']
         self.generations = settings_dict['max_gen']
         self.param_count = len(interactor.param_var_groups)
-        self.result_count = len(interactor.measurement_vars_noinj            #number of objectives being measured
-                                +interactor.measurement_vars_inj)
+        self.result_count = len(interactor.measurement_vars)
         self.min_var = a_min_var
         self.max_var = a_max_var
         self.pcross = settings_dict['pcross']
         self.eta_m = settings_dict['eta_m']
         self.eta_c = settings_dict['eta_c']
-        
-        if progress_handler == None:
-            progress_handler = nothing_function
-        
+
+        if progress_handler is None:
+            progress_handler = lambda x: None
+
         self.progress_handler = progress_handler
-        
-        
+
+
         if settings_dict['pmut'] == None:
-            settings_dict['pmut'] = 0.1 / param_count
-        
+            settings_dict['pmut'] = 0.1 / self.param_count
+
         self.pmut = settings_dict['pmut']
-        
+
         if individuals == None:
             temp = []
             for i in range(self.param_count):
                 temp.append((self.max_var[i] + self.min_var[i])/2)
-            
+
             self.individuals = (temp,)
         else:
             self.individuals = individuals
-        
+
         if settings_dict['seed'] == None:
             seed = time.time()
-        
+
         self.seed = settings_dict['seed']
         self.add_current_to_individuals = settings_dict['add_current_to_individuals']
-        
+
         self.pause = False
-        
-        #print "self.individuals: {0}".format(self.individuals)
-        #print "self."
+
         print "interactor.param_var_groups: {0}".format(interactor.param_var_groups)
-        print "interactor.measurement_vars_noinj: {0}".format(interactor.measurement_vars_noinj)
-        print "interactor.measurement_vars_inj: {0}".format(interactor.measurement_vars_inj)
-    
+        print "interactor.measurement_vars: {0}".format(interactor.measurement_vars)
+
     def save_details_file(self):
-        
+
         file_return = ""
-        
-        file_return += "dlsoo-nsga2.py algorithm\n"
+
+        file_return += "dlsoo_nsga2.py algorithm\n"
         file_return += "=================\n\n"
         file_return += "Generations: {0}\n".format(self.generations)
         file_return += "Population size: {0}\n\n".format(self.population_size)
-        
+
         file_return += "Parameter count: {0}\n".format(self.param_count)
         file_return += "Results count: {0}\n\n".format(self.result_count)
-        
+
         file_return += "Minimum bounds: {0}\n".format(self.min_var)
         file_return += "Maximum bounds: {0}\n\n".format(self.max_var)
-        
+
         file_return += "p_mut: {0}\n".format(self.pmut)
         file_return += "p_cross: {0}\n".format(self.pcross)
         file_return += "eta_m: {0}\n".format(self.eta_m)
         file_return += "eta_c: {0}\n\n".format(self.eta_c)
-        
+
         file_return += "Seed: {0}\n".format(self.seed)
         file_return += "Individuals: {0}".format(self.individuals)
-        
+
         return file_return
-        
-    
+
+
     def make_solution(self, x, y):
         p = solution([i.mean for i in y])
         p.x = x
         p.unc = [i.err for i in y]
         return p
-    
+
     def dom(self, a, b):
         "a weakly dominates b"
         # An individule which is the same in all respects
@@ -163,7 +147,7 @@ class optimiser:
         for (a0, b0) in zip(a, b):
             d = (a0 <= b0) and d
         return d
-    
+
     def test_front(self, fs):
         "check that no member of the non-dominated front dominates another"
         for p0 in fs:
@@ -171,7 +155,7 @@ class optimiser:
                 if self.dom(p0, p1):
                     print "front violation!", p0, p1
                     sys.exit(1)
-    
+
     def find_nondominated_front(self, P):
         # front is empty
         front = []
@@ -187,7 +171,7 @@ class optimiser:
         # check here
         # test_front(front)
         return front
-    
+
     def fast_non_dominated_sort(self, P):
         Fs = []
         P = set(P)
@@ -201,7 +185,7 @@ class optimiser:
             Fs.append(F)
             i += 1
         return Fs
-    
+
     def crowding_distance_assignment(self, front):
         l = len(front)
         for f in front:
@@ -224,10 +208,10 @@ class optimiser:
         p1 = random.choice(idx)
         p2 = random.choice(idx)
         return pop[min(p1, p2)]
-    
+
     def selection(self, pop):
         return [self.binary_tournament_selection(pop) for n in range(len(pop))]
-    
+
     def polynomial_mutation(self, p):
         pmut_real = self.pmut
         eta_m = self.eta_m
@@ -260,7 +244,7 @@ class optimiser:
                 y = yu
             q[n] = y
         return q
-    
+
     def crossover(self, pop):
         Q = []
         for n in range(len(pop)/2):
@@ -269,7 +253,7 @@ class optimiser:
             Q.append(c1)
             Q.append(c2)
         return Q
-    
+
     def sbx20(self, p1, p2):
         pcross_real = self.pcross
         eta_c = self.eta_c
@@ -329,10 +313,10 @@ class optimiser:
                 child1[n] = c1
                 child2[n] = c2
         return (child1, child2)
-    
+
     def mutation(self, pop):
         return [self.polynomial_mutation(p) for p in pop]
-    
+
     def memo_lookup(self, pop):
         done = []
         todo = []
@@ -343,70 +327,64 @@ class optimiser:
             else:
                 todo.append(p)
         return (done, todo)
-    
+
     def evaluate(self, pop):
-        
         "evaluate population"
-        #print "POP: {0}".format(pop)
         # now add memoization
         result = []
-        
+
         # get any cached results
         # (randomly some members don't get mutated or crossed over)
         (already_done, todo) = self.memo_lookup(pop)
-        
+
         # calculate new points
         ys = self.evaluate_link(pop)
         #print "ys: {0}".format(ys)
-        
+
         # store results in cache
         for (x, y) in zip(todo, ys):
             self.memo[x] = y
             result.append(self.make_solution(x, y))
-            
+
         result = result + already_done
         #print result
         return result
-    
+
     def evaluate_link(self, population):
         data = []
-        
+
         for in_pop in range(len(population)):
-                
             # Configure machine for the measurement
             self.interactor.set_ap(population[in_pop])
-            
+
             #data.append(self.interactor.get_ar())
-            
-            all_data, beam_current_max_warning = self.interactor.get_ar()
+
+            all_data = self.interactor.get_ar()
             #print "all_data: {0}".format(all_data)
             #print "population[in_pop]: {0}".format(population[in_pop])
             #print "hi mom!"
             #print ["get_ar() stds: {0}".format(i.dev) for i in all_data]
             #all_data = [i.mean for i in all_data] # Pull out just the means from the returned data
             data.append(all_data)
-            
-            if beam_current_max_warning:
-                tkMessageBox.showwarning('DUMP THE BEAM', 'Beam current limit exceeded, dump beam and resume injection before pressing OK')
-            
+
         #return [i[0] for i in data]
         return data
-    
+
     def make_new_pop(self, pop):
-    
+
         # only need inputs at this stage
         # (we are already sorted by fitness)
         pop = [list(p.x) for p in pop]
-    
+
         pop = self.selection(pop)
         pop = self.crossover(pop)
         pop = self.mutation(pop)
-    
+
         # now evaluate the new populuation members
         pop = self.evaluate(pop)
-    
+
         return pop
-    
+
     def random_population(self):
         "produce a random population within bounds"
         S = self.population_size
@@ -422,7 +400,7 @@ class optimiser:
                 x[n] = lb + (random.random()) * (ub - lb)
             X0.append(x)
         return X0
-    
+
     def set_population_from_individules(self, pop):
         individules = self.individuals
         for i, individule in enumerate(individules):
@@ -446,7 +424,7 @@ class optimiser:
                   ("individules", "array"),
                   ("seed", "int"),
                   )
-    
+
         fail = False
         print "NSGA-II"
         print "======="
@@ -456,20 +434,20 @@ class optimiser:
                 fail = True
             else:
                 print "%s: %s" % (name, options[name])
-    
+
         l1 = len(options["min_realvar"])
         l2 = len(options["max_realvar"])
-    
+
         if l1 != l2:
             print "%sERROR: min_realvar is not the same length as max_realvar\n" \
                   "(should be number of INPUT variables)%s" % (ansi_red, ansi_normal)
             fail = True
-    
+
         for (ml, mu) in zip(options["min_realvar"], options["max_realvar"]):
             if ml > mu:
                 print "%sERROR: Maximum value must be greater than minimum value, but " \
                       "specified value is (%f < %f)%s" % (ansi_red, ml, mu, ansi_normal)
-    
+
         for i in options["individules"]:
             if len(i) != l1:
                 print "%sERROR: an individule must have the same length as" \
@@ -480,18 +458,18 @@ class optimiser:
                     print "%sERROR: Individual out of range with paramter value %f%s" \
                             % (ansi_red, ii, ansi_normal)
                     fail=True
-    
+
         if len(options["individules"]) > options["population_size"]:
             print "%sERROR: more individules specified than population %s" % (ansi_red, ansi_normal)
             fail = True
-    
+
         if fail:
             sys.exit(1)
-    
+
         return options
     '''
     def dump_fronts(self, fronts, generation):
-        
+
         f = file("{0}/FRONTS/fronts.{1}".format(self.store_location, generation), "w")
         f.write("fronts = (\n")
         for i, front in enumerate(fronts):
@@ -503,15 +481,13 @@ class optimiser:
             f.write("),\n")
         f.write(")\n")
         f.close()
-        
-        pass
-    
+
     def optimise(self):
-        
+
         global store_address
         global completed_generation
         store_address = self.store_location
-        
+
         "Non-dominated sorting genetic algorithm II main loop"
         '''
         if not sys.argv[1:]:
@@ -519,7 +495,7 @@ class optimiser:
             print
             print 'Non-dominated Sorting Genetic Algorithm II'
             sys.exit(1)
-    
+
         # load problem
         global options
         options = load_input(sys.argv[1])
@@ -527,15 +503,15 @@ class optimiser:
         # Make the save directory
         if not os.path.exists(self.store_location):
             os.makedirs(self.store_location)
-        
+
         if self.add_current_to_individuals:
             current_ap = self.interactor.get_ap()
             self.individuals = list(self.individuals)
             self.individuals[0] = current_ap
-        
+
         # seed the random number generator to ensure repeatble results
         random.seed(self.seed)
-    
+
         # initialize population
         X0 = self.random_population()
         X0 = self.set_population_from_individules(X0)
@@ -543,165 +519,146 @@ class optimiser:
         Q = []
         print "X0: {0}".format(X0)
         print "P: {0}".format(P)
-        
+
         # for each generation
         for t in range(self.generations):
-    
+
             # combine parent and child populations
             R = P + Q
-    
-    
+
+
             # remove duplicates
             #R = list(set(R))
             R = remove_prop_duplicates(R)
-    
+
             # find all non-dominated fronts
             fronts = self.fast_non_dominated_sort(R)
-    
+
             # calculate the density of solutions around each point
             for f in fronts:
                 self.crowding_distance_assignment(f)
-    
+
             # sort first by rank (which front) then by sparsity
             R.sort(key = crowded_comparison_key)
-    
+
             # take the best solutions that fit in our population size
             P = R[:self.population_size]
-    
+
             # tournament, crossover, mutation
             Q = self.make_new_pop(P)
-    
+
             # print out all solutions by front
             self.dump_fronts(fronts, t)
-    
+
             # Signal progress
             print "generation %d" % t
             completed_generation = t
             self.progress_handler(float(t) / float(self.generations), t)
             while self.pause:
                 self.progress_handler(float(t) / float(self.generations), t)
-    
+
         print "DONE"
         #self.progress_handler(t+1)
 
 
 class import_algo_frame(Tkinter.Frame):
-    
+
     def __init__(self, parent):
-        
+
         Tkinter.Frame.__init__(self, parent)
-        
+
         self.parent = parent
-        
+
         self.initUi()
-    
+
     def initUi(self):
         #self.parent.title("NSGA-II Settings")
         self.add_current_to_individuals = Tkinter.BooleanVar(self)
         self.add_current_to_individuals.set(True)
-        
+
         Tkinter.Label(self, text="Population size:").grid(row=0, column=0, sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self)
         self.i0.grid(row=0, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self, text="Max. generations:").grid(row=1, column=0, sticky=Tkinter.E)
         self.i1 = Tkinter.Entry(self)
         self.i1.grid(row=1, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self, text="Mutation probability:").grid(row=2, column=0, sticky=Tkinter.E)
         self.i2 = Tkinter.Entry(self)
         self.i2.grid(row=2, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self, text="Crossover probability:").grid(row=3, column=0, sticky=Tkinter.E)
         self.i3 = Tkinter.Entry(self)
         self.i3.grid(row=3, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self, text="Eta_m:").grid(row=4, column=0, sticky=Tkinter.E)
         self.i4 = Tkinter.Entry(self)
         self.i4.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self, text="Eta_c:").grid(row=5, column=0, sticky=Tkinter.E)
         self.i5 = Tkinter.Entry(self)
         self.i5.grid(row=5, column=1, sticky=Tkinter.E+Tkinter.W)
-        
+
         Tkinter.Label(self, text="Seed:").grid(row=6, column=0, sticky=Tkinter.E)
         self.i6 = Tkinter.Entry(self)
         self.i6.grid(row=6, column=1, sticky=Tkinter.E+Tkinter.W)
         self.i6.insert(0, time.time())
-        
-        
+
+
         Tkinter.Label(self, text="Recommended:\nMutation probability: 0.1 / (number of parameters)\nCrossover probability: 0.9\nEta_m: 20\nEta_c: 20\nSeed: Any int or float (default is seconds since system epoch)", justify=Tkinter.LEFT).grid(row=7, column=0, columnspan=2, sticky=Tkinter.W)
-        
+
         self.i0.insert(0, "10")
         self.i1.insert(0, "10")
-        self.i2.insert(0, "")
+        self.i2.insert(0, "0.1")
         self.i3.insert(0, "0.9")
         self.i4.insert(0, "20")
         self.i5.insert(0, "20")
 
-        
-    
     def get_dict(self):
-        
-        good_data = True
+
         setup = {}
-        
         try:
             setup['pop_size'] = int(self.i0.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Population size\": \"{0}\", could not be converted to an int".format(self.i0.get()))
-            good_data = False
-        
+            raise ValueError("The value for \"Population size\": \"{0}\", could not be converted to an int".format(self.i0.get()))
+
         try:
             setup['max_gen'] = int(self.i1.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Max. generations\": \"{0}\", could not be converted to an int".format(self.i1.get()))
-            good_data = False
-        
+            raise ValueError("The value for \"Max. generations\": \"{0}\", could not be converted to an int".format(self.i1.get()))
+
         try:
             setup['pmut'] = float(self.i2.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Mutation probability\": \"{0}\", could not be converted to a float".format(self.i2.get()))
-            good_data = False
-        
+            raise ValueError("The value for \"Mutation probability\": \"{0}\", could not be converted to a float".format(self.i2.get()))
+
         try:
             setup['pcross'] = float(self.i3.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Crossover probability\": \"{0}\", could not be converted to a float".format(self.i3.get()))
-            good_data = False
-        
+            raise ValueError("The value for \"Crossover probability\": \"{0}\", could not be converted to a float".format(self.i3.get()))
+
         try:
             setup['eta_m'] = float(self.i4.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Eta_m\": \"{0}\", could not be converted to a float".format(self.i4.get()))
-            good_data = False
-        
+            raise ValueError("The value for \"Eta_m\": \"{0}\", could not be converted to a float".format(self.i4.get()))
+
         try:
             setup['eta_c'] = float(self.i5.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Eta_c\": \"{0}\", could not be converted to a float".format(self.i5.get()))
-            good_data = False
-        
+            raise ValueError("The value for \"Eta_c\": \"{0}\", could not be converted to a float".format(self.i5.get()))
+
         try:
             setup['seed'] = float(self.i6.get())
         except:
-            tkMessageBox.showerror("NSGA-II settings error", "The value for \"Seed\": \"{0}\", could not be converted to a float".format(self.i6.get()))
-            good_data = False
-        
-        
+            raise ValueError("The value for \"Seed\": \"{0}\", could not be converted to a float".format(self.i6.get()))
+
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
         elif self.add_current_to_individuals.get() == 1:
             setup['add_current_to_individuals'] = True
-        
-        if good_data:
-            return setup
-        else:
-            return "error"
-        
-        
-    
 
+        return setup
 
 
 class import_algo_prog_plot(Tkinter.Frame):
@@ -747,7 +704,7 @@ class import_algo_final_plot(Tkinter.Frame):
     '''
 
     def __init__(self, parent, pick_handler, axis_labels, signConverter, initial_config=None, post_analysis_store_address = None):
-        
+
         global store_address
         Tkinter.Frame.__init__(self, parent)
 
@@ -756,10 +713,10 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.pick_handler = pick_handler
         self.axis_labels = axis_labels
-        
+
         if initial_config is not None:
             self.initial_measurements = initial_config
-        
+
         if post_analysis_store_address is not None:             #this class is also used for post_analysis
             store_address = post_analysis_store_address
 
@@ -771,7 +728,7 @@ class import_algo_final_plot(Tkinter.Frame):
         """
         global store_address
 
-        self.parent.title("MOSA results")
+        self.parent.title("NSGA-II results")
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
@@ -780,7 +737,7 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.view_mode = Tkinter.StringVar()
         self.view_mode.set('No focus')
-        
+
         if initial_config_plot is True:
             self.plot_frame = final_plot(self, self.axis_labels, self.signConverter, initial_config=self.initial_measurements)
         else:
@@ -849,7 +806,7 @@ class import_algo_final_plot(Tkinter.Frame):
 class final_plot(Tkinter.Frame):
 
     '''
-    This actually plots the final front for the algorithm at the end of running. 
+    This actually plots the final front for the algorithm at the end of running.
     '''
 
     def __init__(self, parent, axis_labels, signConverter, initial_config=None):
@@ -859,9 +816,9 @@ class final_plot(Tkinter.Frame):
         self.parent = parent
         self.signConverter = signConverter
         self.axis_labels = axis_labels
-        
+
         if initial_config is not None:
-            self.initial_measurements = initial_config         
+            self.initial_measurements = initial_config
             self.initUi(initial_config_plot=True)
         else:
             self.initUi()
@@ -880,28 +837,28 @@ class final_plot(Tkinter.Frame):
         file_names = []
         for i in range(completed_generation):                                            #gather fronts
             file_names.append("{0}/FRONTS/fronts.{1}".format(store_address, i))
-            
+
         print 'file names', file_names
-        
+
         if initial_config_plot is True:
 
-            plot.plot_pareto_fronts_interactive(file_names, 
-                                                a, 
-                                                self.axis_labels, 
-                                                None, 
-                                                None, 
-                                                self.parent.view_mode.get(), 
-                                                self.signConverter, 
-                                                initial_measurements=self.initial_measurements)  
-        else: 
-            
-            plot.plot_pareto_fronts_interactive(file_names, 
-                                                a, 
-                                                self.axis_labels, 
-                                                None, 
-                                                None, 
-                                                self.parent.view_mode.get(), 
-                                                self.signConverter)   
+            plot.plot_pareto_fronts_interactive(file_names,
+                                                a,
+                                                self.axis_labels,
+                                                None,
+                                                None,
+                                                self.parent.view_mode.get(),
+                                                self.signConverter,
+                                                initial_measurements=self.initial_measurements)
+        else:
+
+            plot.plot_pareto_fronts_interactive(file_names,
+                                                a,
+                                                self.axis_labels,
+                                                None,
+                                                None,
+                                                self.parent.view_mode.get(),
+                                                self.signConverter)
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)

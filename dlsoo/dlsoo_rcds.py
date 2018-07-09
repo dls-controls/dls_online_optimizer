@@ -1,33 +1,15 @@
 #RCDS optimiser
 from __future__ import division
-#import pkg_resources
-#pkg_resources.require('numpy')
-#pkg_resources.require('scipy')
-#pkg_resources.require('matplotlib')
 import numpy
-import math
-import time
-import sys
-import os
 import random
-import scipy
-import scipy.stats as stats
-from usefulFunctions import *
+from dlsoo import plot, util
 
 import Tkinter
 import ttk
-import tkMessageBox
 
-import dls_optimiser_plot as plot
-import matplotlib
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-import matplotlib.cm as cm
-import matplotlib.pyplot as pyplot
-# colour display codes
-ansi_red = "\x1B[31m"
-ansi_normal = "\x1B[0m"
+
 #define a global store address so that the program can store the fronts for plotting
 #completed_generation is used to keep track of files that store the front infomration
 store_address = None
@@ -36,11 +18,13 @@ goldenRatio = 1.618034
 userInputDirections = []
 searchPlotData = []
 
+
 def nothing_function(x,y):
     '''
     used to deal with progress handling when no progress_handler is specified
     '''
     pass
+
 
 def createSearchDir(i, j, len1):
     '''
@@ -54,6 +38,7 @@ def createSearchDir(i, j, len1):
             dir.append(0)
     return dir
 
+
 def unNormalise(x, down, up):
     '''
     Takes a set of parameters normalised to the unit cube and converts them back to the actual parameters.
@@ -61,12 +46,14 @@ def unNormalise(x, down, up):
     x1 = [down[i] + x[i]*(up[i] - down[i]) for i in range(len(x))]
     return x1
 
+
 def vecNormalise(x):
     '''
     normalise a column vector x
     '''
     vecNorm = sum([i^2 for i in x])**0.5
     x = [i/vecNorm for i in x]
+
 
 def removeOutliers(differenceList):
     '''
@@ -92,11 +79,9 @@ def removeOutliers(differenceList):
     return (lower + upper)
 
 
-
-
-class optimiser:
+class Optimiser(object):
     '''
-    This is the class that handles the actual operation of the optimiser.
+    This is the class that handles the actual operation of the Optimiser.
     '''
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, individuals=None, progress_handler=None):
         self.interactor = interactor                                #allows the algorithm to obtain the objectives.
@@ -486,32 +471,26 @@ class import_algo_frame(Tkinter.Frame):
     def get_dict(self):
         #extracts the inputted settings to put in settings dictionary
         setup = {}
-        good_data = True
         try:
             setup['nOIterations'] = int(self.i2.get())
         except:
-            ttk.showerror('RCDS settings error', 'The value for number of iterations must be an integer.')
-            good_data = False
+            raise ValueError('The value for number of iterations must be an integer.')
         try:
             setup['tolerance'] = float(self.i3.get())
         except:
-            ttk.showerror('RCDS settings error', 'The finishing tolerance must be a number.')
-            good_data = False
+            raise ValueError('The finishing tolerance must be a number.')
         try:
             setup['objCallStop'] = int(self.i4.get())
         except:
-            ttk.showerror('RCDS settings error', 'The maximum number of measurements must be an integer.')
-            good_data = False
+            raise ValueError('The maximum number of measurements must be an integer.')
         try:
             setup['initStep'] = float(self.i5.get())
         except:
-            ttk.showerror('RCDS settings error', 'The initial step must be a number.')
-            good_data = False
+            raise ValueError('The initial step must be a number.')
         try:
             setup['numTestPoints'] = int(self.i6.get())
         except:
-            ttk.showerror('RCDS settings error', 'The number of test points must be an integer.')
-            good_data = False
+            raise ValueError('The number of test points must be an integer.')
         setup['searchDirections'] = []
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
@@ -519,11 +498,8 @@ class import_algo_frame(Tkinter.Frame):
             setup['add_current_to_individuals'] = True
         if self.dirsGiven:
             for i in range(int(self.i7.get())):
-                setup['searchDirections'].append(list(extractNumbers(self.dirInputs[i].get())))
-        if good_data:
-            return setup
-        else:
-            return 'error'
+                setup['searchDirections'].append(list(util.extract_numbers(self.dirInputs[i].get())))
+        return setup
 
     def askNum(self):
         Tkinter.Label(self, text='Number of directions to add:').grid(row=12, column=0, sticky=Tkinter.E)

@@ -5,46 +5,33 @@ MULTI-OBJECTIVE SIMULATED ANEALING ALGORITHM
 '''
 
 from __future__ import division
-#import pkg_resources
-#pkg_resources.require('numpy')
-#pkg_resources.require('scipy')
-#pkg_resources.require('matplotlib')
 import numpy
 import math
-import time
-import sys
 import os
 import random
-import scipy.stats as stats
+from scipy import stats
 
 import Tkinter
 import ttk
-import tkMessageBox
-import cothread
 
-import dls_optimiser_plot as plot
-import matplotlib
-matplotlib.use("TkAgg")
+from dlsoo import plot, tkutil, util
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-import matplotlib.cm as cm
-import matplotlib.pyplot as pyplot
-from usefulFunctions import *
-# colour display codes
-ansi_red = "\x1B[31m"
-ansi_normal = "\x1B[0m"
+
 #define a global store address so that the program can store the fronts for plotting
 #completed_generation is used to keep track of files that store the front infomration
 store_address = None
 completed_generation = 0
 
-#The following is a list of functions useful to the optimiser bolow
-#used to deal with the case of progress handler for the optimiser class
+
+#The following is a list of functions useful to the Optimiser bolow
+#used to deal with the case of progress handler for the Optimiser class
 def nothing_function(data, x):
     '''
     Used as a substitute when there is no progress_handler given.
     '''
     pass
+
 
 def is_dominated(x,y):
     '''
@@ -59,6 +46,7 @@ def is_dominated(x,y):
             isLargerEqual = False
     return (isLargerEqual and isLarger)
 
+
 def probCalc(newObj, oldObj, temp):
     '''
     calculate the acceptance probability for a new set of parameters
@@ -68,6 +56,7 @@ def probCalc(newObj, oldObj, temp):
     for i in range(len(newObj)):
         exponent = exponent + (newObj[i] - oldObj[i])/temp[i]
     return min(1, numpy.exp(-exponent))
+
 
 def addRanGuass(params, temp, upBound, downBound):
     '''
@@ -81,9 +70,10 @@ def addRanGuass(params, temp, upBound, downBound):
         newPoint.append(x)
     return newPoint
 
-class optimiser:
+
+class Optimiser(object):
     '''
-    This is the optimiser class which deals with the actual optimisation process.
+    This is the Optimiser class which deals with the actual optimisation process.
     '''
     def __init__(self, settings_dict, interactor, store_location, a_min_var, a_max_var, individuals=None, progress_handler=None):
         self.interactor = interactor    #The interactor is what allows the program to evalute objectives.
@@ -156,7 +146,7 @@ class optimiser:
             objectiveEval = self.getObjectives()
             testResults.append(objectiveEval[0])
         for i in range(self.objCount):
-            newTemp = mean(extractColumn(testResults, i))
+            newTemp = util.mean(util.extract_column(testResults, i))
             self.outTemp.append(newTemp)
 
     def setNewOutTemp(self, objMin):
@@ -405,52 +395,42 @@ class import_algo_frame(Tkinter.Frame):
     def get_dict(self):
         #extracts the inputted settings to put in settings dictionary
         setup = {}
-        good_data = True
         try:
             setup['passInTempDrop'] = float(self.i2.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Temperture drops input incorrectly.')
-            good_data = False
+            raise ValueError('Temperature drops input incorrectly')
         try:
             setup['passOutTempDrop'] = float(self.i3.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Temperture drops input incorrectly.')
-            good_data = False
+            raise ValueError('Temperature drops input incorrectly')
         try:
             setup['noAneals'] = int(self.i4.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Number of anneals must be an integer.')
-            good_data = False
+            raise ValueError('Number of anneals must be an integer')
         try:
             setup['noIterations'] = int(self.i5.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Number of iterations must be an integer.')
-            good_data = False
+            raise ValueError('Number of iterations must be an integer')
         try:
             setup['failDropCount'] = int(self.i6.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Fail drop count must be an integer.')
-            good_data = False
+            raise ValueError('Fail drop count must be an integer')
         try:
             setup['objCallStop'] = int(self.i7.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'Maximum number of measurements must be an integer.')
-            good_data = False
+            raise ValueError('Maximum number of measurements must be an integer')
         try:
             setup['anealPlot'] = int(self.i8.get())
         except:
-            tkMessageBox.showerror('MOSA settings error', 'The number of aneals before plotting must be an integer.')
-            good_data = False
+            raise ValueError('The number of anneals before plotting must be an integer')
 
         if self.add_current_to_individuals.get() == 0:
             setup['add_current_to_individuals'] = False
         elif self.add_current_to_individuals.get() == 1:
             setup['add_current_to_individuals'] = True
 
-        if good_data:
-            return setup
-        else:
-            return 'error'
+        return setup
+
 
 class import_algo_prog_plot(Tkinter.Frame):
 
@@ -499,7 +479,7 @@ class import_algo_final_plot(Tkinter.Frame):
     '''
 
     def __init__(self, parent, pick_handler, axis_labels, signConverter, initial_config=None, post_analysis_store_address = None):
-        
+
         global store_address
         Tkinter.Frame.__init__(self, parent)
 
@@ -508,10 +488,10 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.pick_handler = pick_handler
         self.axis_labels = axis_labels
-        
+
         if initial_config is not None:
             self.initial_measurements = initial_config
-        
+
         if post_analysis_store_address is not None:             #this class is also used for post_analysis
             store_address = post_analysis_store_address
 
@@ -532,7 +512,7 @@ class import_algo_final_plot(Tkinter.Frame):
 
         self.view_mode = Tkinter.StringVar()
         self.view_mode.set('No focus')
-        
+
         if initial_config_plot is True:
             self.plot_frame = final_plot(self, self.axis_labels, self.signConverter, initial_config=self.initial_measurements)
         else:
@@ -601,7 +581,7 @@ class import_algo_final_plot(Tkinter.Frame):
 class final_plot(Tkinter.Frame):
 
     '''
-    This actually plots the final front for the algorithm at the end of running. 
+    This actually plots the final front for the algorithm at the end of running.
     '''
 
     def __init__(self, parent, axis_labels, signConverter, initial_config=None):
@@ -611,9 +591,9 @@ class final_plot(Tkinter.Frame):
         self.parent = parent
         self.signConverter = signConverter
         self.axis_labels = axis_labels
-        
+
         if initial_config is not None:
-            self.initial_measurements = initial_config         
+            self.initial_measurements = initial_config
             self.initUi(initial_config_plot=True)
         else:
             self.initUi()
@@ -632,28 +612,28 @@ class final_plot(Tkinter.Frame):
         file_names = []
         for i in range(completed_generation):                                            #gather fronts
             file_names.append("{0}/FRONTS/fronts.{1}".format(store_address, i+1))
-            
+
         print 'file names', file_names
-        
+
         if initial_config_plot is True:
 
-            plot.plot_pareto_fronts_interactive(file_names, 
-                                                a, 
-                                                self.axis_labels, 
-                                                None, 
-                                                None, 
-                                                self.parent.view_mode.get(), 
-                                                self.signConverter, 
-                                                initial_measurements=self.initial_measurements)  
-        else: 
-            
-            plot.plot_pareto_fronts_interactive(file_names, 
-                                                a, 
-                                                self.axis_labels, 
-                                                None, 
-                                                None, 
-                                                self.parent.view_mode.get(), 
-                                                self.signConverter)   
+            plot.plot_pareto_fronts_interactive(file_names,
+                                                a,
+                                                self.axis_labels,
+                                                None,
+                                                None,
+                                                self.parent.view_mode.get(),
+                                                self.signConverter,
+                                                initial_measurements=self.initial_measurements)
+        else:
+
+            plot.plot_pareto_fronts_interactive(file_names,
+                                                a,
+                                                self.axis_labels,
+                                                None,
+                                                None,
+                                                self.parent.view_mode.get(),
+                                                self.signConverter)
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.mpl_connect('pick_event', self.parent.on_pick)
