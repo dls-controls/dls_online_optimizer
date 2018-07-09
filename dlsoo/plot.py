@@ -160,9 +160,11 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
                 #add error ellipses
                 x_err = i[2][0]
                 y_err = i[2][1]
+                diam_x = x_err * 2
+                diam_y = y_err * 2
 
                 if nf == len(fs) - 1:
-                    ell = pat.Ellipse(xy=(i[1][0]*signConverter[0], i[1][1]*signConverter[1]), width=x_err, height=y_err)
+                    ell = pat.Ellipse(xy=(i[1][0]*signConverter[0], i[1][1]*signConverter[1]), width=diam_x, height=diam_y) # diam_x,y substites err_x,y
                     ell.set_facecolor('none')
                     ax.add_artist(ell)
 
