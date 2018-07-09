@@ -16,19 +16,29 @@ def bunch_length(I_beam):
 
 def lifetime_proxy():
 
-    PMT_count = caget('SR-DI-COUNT-01:MEAN')+0.001
+    sy_ref = 12.2 # 8/5/2018 vertical beam size in um
+    sy     = caget('SR-DI-EMIT-01:P1:SIGMAY_MEAN')
     I_beam = caget('SR-DI-DCCT-01:SIGNAL')
-    epsilon_y = caget('SR-DI-EMIT-01:VEMIT_MEAN')
-
-    bunch_length_value = bunch_length(I_beam)
-
-    objective = I_beam/(PMT_count*bunch_length_value*math.sqrt(epsilon_y))
+    PMT_count = caget('SR-DI-COUNT-01:MEAN')+0.001
+    objective =  PMT_count /  PMT_ref(I_beam) * sy_ref / sy  # rescaled n. of losses (note it was sy / sy_ref, corrected after IPAC)
+    print('LT_proxy_resc='+str(objective))
+    
+#    epsilon_y = caget('SR-DI-EMIT-01:VEMIT_MEAN')
+#    bunch_length_value = bunch_length(I_beam)
+#    objective = I_beam/(PMT_count*bunch_length_value*math.sqrt(epsilon_y))
 
     return objective
 
+def PMT_ref(x):  # MA 17/4/2018
+#
+#   x is the beam current in Amps
+#
+# MA 10/04/2018
+#    PMT_ref = -2.608e-6*x**4 + 0.000502*x**3 + 0.4294*x**2 + 18.55*x -258.2
+#old    PMT_ref =  6.3521e-6*x**4 - 0.0046326*x**3 +2.1405*x**2 -25.915*x +307.87
+#    PMT_ref = 1.3e-6*x**4 -0.0015*x**3 +0.68*x**2 +0.74*x +22
+    PMT_ref = 2.1e-6*x**4 -0.0024*x**3 + 0.81*x**2 -0.88*x -0.55
+    return PMT_ref
+
 
 name_to_function_mapping = {"lifetime_proxy" : lifetime_proxy}
-
-
-
-
