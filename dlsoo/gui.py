@@ -514,8 +514,9 @@ class MainWindow(Tkinter.Frame):
 
 class PointDetails(Tkinter.Frame):
     """
-    This class is for the window that is shown when clicking on a point in the final Pareto front. It requires reading saved files
-    that are in Pickle format.
+    This class is for the window that is shown when clicking on a point in
+    the final Pareto front. It requires reading saved files that are in
+    Pickle format.
     """
 
     def __init__(self, parent, parameters):
