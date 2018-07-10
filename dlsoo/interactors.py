@@ -409,6 +409,7 @@ class dls_machine_interactor_bulk_base_inj_control:
         self.measurement_vars = measurement_vars
         self.measurement_vars_noinj = [mv for mv in measurement_vars if not mv.inj_setting]
         self.measurement_vars_inj = [mv for mv in measurement_vars if mv.inj_setting]
+        self.results = results
         self.beam_current_bounds = None, None
 
         self.param_vars = []
