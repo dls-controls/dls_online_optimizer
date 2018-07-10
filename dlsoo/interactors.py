@@ -9,6 +9,7 @@ from . import model, util
 import cothread
 from cothread.catools import caput
 import pickle
+import tkMessageBox
 
 
 class dls_machine_interactor_bulk_base:
@@ -408,7 +409,7 @@ class dls_machine_interactor_bulk_base_inj_control:
         self.measurement_vars = measurement_vars
         self.measurement_vars_noinj = [mv for mv in measurement_vars if not mv.inj_setting]
         self.measurement_vars_inj = [mv for mv in measurement_vars if mv.inj_setting]
-        self.beam_current_bounds = None
+        self.beam_current_bounds = None, None
 
         self.param_vars = []
         for group in self.param_var_groups:
@@ -509,7 +510,7 @@ class dls_machine_interactor_bulk_base_inj_control:
         caput('LI-TI-MTGEN-01:START', 0)
         cothread.Sleep(4.0)
 
-        if self.beam_current_bounds is not None:
+        if self.beam_current_bounds[0] is not None:
             beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
             while beam_current < self.beam_current_bounds[0]:
                 print 'waiting for beam current to rise above ', \
@@ -522,8 +523,7 @@ class dls_machine_interactor_bulk_base_inj_control:
                                        util.abstract_caget)
 
         # Now for the non-injection measurements
-
-        if self.beam_current_bounds is not None:
+        if self.beam_current_bounds[1] is not None:
             if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
                 beam_current_max_warning = True
 
@@ -538,10 +538,11 @@ class dls_machine_interactor_bulk_base_inj_control:
                                          util.abstract_caget)
 
         # Now combine the results into a single list
+        mrs = mrs_noinj + mrs_inj
 
-        results = mrs_noinj + mrs_inj
-
-        mrs = results
+        if beam_current_max_warning:
+            msg = 'Beam current limit exceeded.\nDump the beam before pressing OK.'
+            tkMessageBox.showwarning('DUMP THE BEAM', msg)
 
         return mrs
 
