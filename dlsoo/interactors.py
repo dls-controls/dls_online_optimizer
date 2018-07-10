@@ -502,37 +502,41 @@ class dls_machine_interactor_bulk_base_inj_control:
         get_command = util.abstract_caget
         beam_current_max_warning = False
 
-        # First measure the injection results
-        # Begin injecting
-        print "Start injection"
-        caput('LI-TI-MTGEN-01:START', 1)
-        cothread.Sleep(0.1)
-        caput('LI-TI-MTGEN-01:START', 0)
-        cothread.Sleep(4.0)
+        # Only control injection if there are variables that require it.
+        if self.measurement_vars_inj:
+            # First measure the injection results
+            # Begin injecting
+            print "Start injection"
+            caput('LI-TI-MTGEN-01:START', 1)
+            cothread.Sleep(0.1)
+            caput('LI-TI-MTGEN-01:START', 0)
+            cothread.Sleep(4.0)
 
-        if self.beam_current_bounds[0] is not None:
-            beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
-            while beam_current < self.beam_current_bounds[0]:
-                print 'waiting for beam current to rise above ', \
-                    self.beam_current_bounds[0]
-                cothread.Sleep(1)
+            if self.beam_current_bounds[0] is not None:
                 beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
-                print '...'
+                while beam_current < self.beam_current_bounds[0]:
+                    print 'waiting for beam current to rise above ', \
+                        self.beam_current_bounds[0]
+                    cothread.Sleep(1)
+                    beam_current = get_command('SR-DI-DCCT-01:SIGNAL')
+                    print '...'
 
-        mrs_inj = util.measure_results(self.measurement_vars_inj,
-                                       util.abstract_caget)
+            mrs_inj = util.measure_results(self.measurement_vars_inj,
+                                           util.abstract_caget)
 
-        # Now for the non-injection measurements
-        if self.beam_current_bounds[1] is not None:
-            if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
-                beam_current_max_warning = True
+            # Now for the non-injection measurements
+            if self.beam_current_bounds[1] is not None:
+                if get_command('SR-DI-DCCT-01:SIGNAL') > self.beam_current_bounds[1]:
+                    beam_current_max_warning = True
 
-        # Stop injection
-        print "Stop injection"
-        caput('LI-TI-MTGEN-01:STOP', 1)
-        cothread.Sleep(0.1)
-        caput('LI-TI-MTGEN-01:STOP', 0)
-        cothread.Sleep(1)
+            # Stop injection
+            print "Stop injection"
+            caput('LI-TI-MTGEN-01:STOP', 1)
+            cothread.Sleep(0.1)
+            caput('LI-TI-MTGEN-01:STOP', 0)
+            cothread.Sleep(1)
+        else:
+            mrs_inj = []
 
         mrs_noinj = util.measure_results(self.measurement_vars_noinj,
                                          util.abstract_caget)
