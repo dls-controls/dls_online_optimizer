@@ -752,7 +752,7 @@ class AddPv(tkutil.DialogBox):
         self.setting_mode = Tkinter.IntVar()
         self.setting_mode.set(0)
 
-        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="PV name:").grid(row=0, column=0, sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
@@ -783,7 +783,7 @@ class AddPv(tkutil.DialogBox):
 
     def add_pv_to_list(self):
         """
-        Once defined, collect PV address + other options and create parameter object
+        Once defined, collect PV name + other options and create parameter object
         """
 
         details = (self.i0.get(), self.i1.get(), self.i2.get(), self.i3.get(), self.setting_mode.get())
@@ -1208,11 +1208,11 @@ class AddLifetime(tkutil.DialogBox):
         self.inj_setting = Tkinter.IntVar()
         self.inj_setting.set(0)                         #0 means don't inject, 1 means inject
 
-        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="PV name:").grid(row=0, column=0, sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
         self.i0.insert(0, 'lifetime_proxy')
-        self.i0['state'] = 'disabled'                   #the PV address must be 'lifetime_proxy'
+        self.i0['state'] = 'disabled'                   #the PV name must be 'lifetime_proxy'
 
         Tkinter.Label(self.frame, text="Measurements:").grid(row=1, column=0, sticky=Tkinter.E)
         self.i1 = Tkinter.Entry(self.frame)
@@ -1295,7 +1295,7 @@ class AddObjFunc(tkutil.DialogBox):
         self.inj_setting = Tkinter.IntVar()
         self.inj_setting.set(0)  # 0 means don't inject, 1 means inject
 
-        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0,
+        Tkinter.Label(self.frame, text="PV name:").grid(row=0, column=0,
                                                             sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2,
