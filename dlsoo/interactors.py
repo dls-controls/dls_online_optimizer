@@ -100,7 +100,7 @@ class dls_machine_interactor_bulk_base:
         return aps
 
     def mr_to_ar(self, mrs):
-        #converts a set of machine results to algorithm results
+        # converts a set of machine results to algorithm results
         ars = []
 
         mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in self.results]
@@ -484,7 +484,17 @@ class dls_machine_interactor_bulk_base_inj_control:
         return aps
 
     def mr_to_ar(self, mrs):
-        return mrs
+        #converts a set of machine results to algorithm results
+        ars = []
+
+        mr_to_ar_sign = [mrr.mr_to_ar_sign for mrr in self.results]
+        for mr, sign in zip(mrs, mr_to_ar_sign):
+            if sign == '+':
+                ars.append(mr)
+            elif sign == '-':
+                ars.append(-mr)
+
+        return ars
 
     def set_mp(self, mps):
         util.set_params(self.param_vars, mps, caput)
