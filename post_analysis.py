@@ -7,10 +7,6 @@ Created on 19 Jul 2017
 '''
 from __future__ import division
 import pkg_resources
-pkg_resources.require('cothread')
-pkg_resources.require('matplotlib')
-pkg_resources.require('numpy')
-pkg_resources.require('scipy')
 import Tkinter
 import ttk
 import tkFileDialog
@@ -19,8 +15,6 @@ import os
 import imp
 import pickle
 import ast
-import matplotlib
-matplotlib.use("TkAgg")
 
 
 store_address = None
@@ -153,7 +147,6 @@ class MainWindow(Tkinter.Frame):
         final_plot_frame.initUi(initial_config_plot=False)
         final_plot_window.deiconify()
 
-#------------------------------------------------------ SOLUTION SELECTION ---------------------------------------------------------#
 
 class point_details(Tkinter.Frame):
     """
@@ -250,9 +243,14 @@ class point_details(Tkinter.Frame):
 
 
 if __name__ == '__main__':
+    # Manage imports and matplotlib setup.
     pkg_resources.require('matplotlib')
     pkg_resources.require('numpy')
     pkg_resources.require('scipy')
+    pkg_resources.require('cothread')
+    import matplotlib
+    matplotlib.use("TkAgg")
+
     #setup main window
     root = Tkinter.Tk()
     root.title("DLS Post Optimisation Analysis")

@@ -76,14 +76,7 @@ class TargetSelector(tkutil.DialogBox):
         self.configure(background='lightblue')
         # Border since regular window decoraion is removed by
         # overrideredirect()
-        self.config(borderwidth=5, relief=Tkinter.RIDGE)
-        # update own geometry so we can calculate positions
-        self.update()
-        # centre inside parent widget
-        x = parent.winfo_rootx() + parent.winfo_width() / 2 - self.winfo_width() / 2
-        y = parent.winfo_rooty() + parent.winfo_height() / 2 - self.winfo_height() / 2
-        self.geometry('+{}+{}'.format(x, y))
-        self.update()
+        self.config(borderwidth=2, relief=Tkinter.RIDGE)
 
     def machine_selected(self):
         return self.selected.get() == 2
@@ -167,7 +160,7 @@ class MainWindow(Tkinter.Frame):
         self.Toutput_params.heading("maxmin", text="Target")
         self.Toutput_params.column("inj", width=120)
         self.Toutput_params.heading("inj", text="Injection Settings")
-        self.Toutput_params.grid(row=0, column=3, columnspan=3)
+        self.Toutput_params.grid(row=0, column=3, columnspan=4)
 
         #ADD PARAMETER BUTTONS
         self.btn_input_params_add = Tkinter.Button(self.parent, text="Add single", command=self.show_add_pv_window)
@@ -182,10 +175,18 @@ class MainWindow(Tkinter.Frame):
         self.btn_output_params_add.grid(row=1, column=3, rowspan=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.lifetime_add = Tkinter.Button(self.parent, text="Add Lifetime", command=self.show_add_lifetime_window)
         self.lifetime_add.grid(row=2, column=3, rowspan=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+        self.beam_min_label = Tkinter.Label(self.parent, text="Min current:")
+        self.beam_min_label.grid(row=1, column=4)
+        self.beam_min_entry = Tkinter.Entry(self.parent)
+        self.beam_min_entry.grid(row=1, column=5)
+        self.beam_max_label = Tkinter.Label(self.parent, text="Max current:")
+        self.beam_max_label.grid(row=2, column=4)
+        self.beam_max_entry = Tkinter.Entry(self.parent)
+        self.beam_max_entry.grid(row=2, column=5)
         self.btn_output_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_obj)
-        self.btn_output_params_rmv.grid(row=1, column=5, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+        self.btn_output_params_rmv.grid(row=1, column=6, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=3, column=0, columnspan=6, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+        ttk.Separator(self.parent, orient='horizontal').grid(row=3, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
         #SAVE DIRECTORY
         Tkinter.Label(self.parent, text="Save directory:").grid(row=4, column=0, sticky=Tkinter.E)
@@ -195,7 +196,7 @@ class MainWindow(Tkinter.Frame):
         self.btn_browse_save_address = Tkinter.Button(self.parent, text="Browse...", command=self.browse_save_location)
         self.btn_browse_save_address.grid(row=4, column=5, sticky=Tkinter.E+Tkinter.W)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=5, column=0, columnspan=6, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+        ttk.Separator(self.parent, orient='horizontal').grid(row=5, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
         #ALGORITHM CHOICE
         self.optimiserChoice = Tkinter.StringVar()
@@ -205,7 +206,7 @@ class MainWindow(Tkinter.Frame):
         self.algo.current(0)
         self.algo.grid(row=6, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=7, column=0, columnspan=6, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+        ttk.Separator(self.parent, orient='horizontal').grid(row=7, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
         #NEXT BUTTON
         self.btn_algo_settings = Tkinter.Button(self.parent, text="Next...", bg="red", command=self.next_button)
@@ -390,6 +391,25 @@ class MainWindow(Tkinter.Frame):
                               "No objectives set")
 
             return False
+
+        try:
+            beam_min = self.beam_min_entry.get().strip()
+            if beam_min:
+                beam_min_value = float(beam_min)
+            else:
+                beam_min_value = None
+            beam_max = self.beam_max_entry.get().strip()
+            if beam_max:
+                beam_max_value = float(beam_max)
+            else:
+                beam_max_value = None
+            self.parameters.beam_current_bounds = beam_min_value, beam_max_value
+        except ValueError:
+            tkutil.ErrorPopup(self.parent,
+                              'Beam limits invalid',
+                              'Could not parse beam current limits')
+            return
+
         # If not a simulation, check that all the configured PVs exist.
         if self.parameters.useMachine:
             param_pvs = []
@@ -691,6 +711,7 @@ class AlgorithmSettings(tkutil.DialogBox):
             set_relative=relative_settings,
             results=self.parameters.results
         )
+
         self.parameters.interactor.beam_current_bounds = self.parameters.beam_current_bounds
 
         #save the interactor object to file (used in post_analysis file)
@@ -842,7 +863,7 @@ class AddBulkPv(tkutil.DialogBox):
         self.frame = Tkinter.Frame(self)
 
         self.setting_mode = Tkinter.IntVar()            #this is for which method of defining the parameter bounds is being used
-        self.setting_mode.set(1)
+        self.setting_mode.set(0)
 
         Tkinter.Label(self.frame, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
         self.group_name_entry = Tkinter.Entry(self.frame)
@@ -880,9 +901,10 @@ class AddBulkPv(tkutil.DialogBox):
 
         self.r0 = Tkinter.Radiobutton(self.frame, text="Define PV Change", variable=self.setting_mode, value=0)
         self.r0.grid(row=7, column=1)
-
+        self.r0.configure(state=Tkinter.DISABLED)
         self.r2 = Tkinter.Radiobutton(self.frame, text="Define PV Bounds", variable=self.setting_mode, value=1)
         self.r2.grid(row=7, column=0)
+        self.r2.configure(state=Tkinter.DISABLED)
 
         self.b0 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
         self.b0.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
@@ -895,30 +917,14 @@ class AddBulkPv(tkutil.DialogBox):
         """
         This class is for reading a csv file with list of parameter PVs, which are then put into the column of parameter PVs in the 'Add Bulk Parameter PVs' window
         """
+        pv_file = tkFileDialog.askopenfile()
+        if pv_file is not None:
+            self.i_file_address.delete(0, 'end')
+            self.i_file_address.insert(0, pv_file.name)
 
-        store_directory = tkFileDialog.askopenfile()
-        self.i_file_address.delete(0, 'end')
-        self.i_file_address.insert(0, store_directory.name)
-        groupPV_address = store_directory
-
-        print groupPV_address
-
-        group_file = open(groupPV_address.name, 'r')
-        wr = csv.reader(group_file)
-
-        addresses = []
-
-        for row in wr:
-            addresses.append(row[0:1][0])
-
-        for i in addresses:
-
-            if i == addresses[-1]:
-                self.pv_name_box.insert(Tkinter.END, i)
-                return
-
-            self.pv_name_box.insert(Tkinter.END, '{0}\n'.format(i))
-
+            with open(pv_file.name, 'r') as f:
+                all_pvs = [line.strip() for line in f.readlines()]
+                self.pv_name_box.insert(Tkinter.END, '\n'.join(all_pvs))
 
     def _get_entry_value(self, entry, name, conversion):
         try:
@@ -1227,27 +1233,10 @@ class AddLifetime(tkutil.DialogBox):
         self.r3 = Tkinter.Radiobutton(self.frame, text="Injection", variable = self.inj_setting, value=1)
         self.r3.grid(row=4, column=1, sticky=Tkinter.W)
 
-        ttk.Separator(self.frame, orient='horizontal').grid(row=5, column=0, columnspan=3, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
-
-        """ The user must also define the number of bunches as well as min/max beam current for the proxy equation to hold """
-
-        Tkinter.Label(self.frame, text="Number of bunches:").grid(row=6, column=0, sticky=Tkinter.E)
-        self.i4 = Tkinter.Entry(self.frame)
-        self.i4.grid(row=6, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-
-        Tkinter.Label(self.frame, text="Min. Beam Current (mA):").grid(row=7, column=0, sticky=Tkinter.E)
-        self.i5 = Tkinter.Entry(self.frame)
-        self.i5.grid(row=7, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-
-        Tkinter.Label(self.frame, text="Max. Beam Current (mA)").grid(row=8, column=0, sticky=Tkinter.E)
-        self.i6 = Tkinter.Entry(self.frame)
-        self.i6.grid(row=8, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-
         self.b1 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
-        self.b1.grid(row=9, column=1, sticky=Tkinter.E+Tkinter.W)
+        self.b1.grid(row=5, column=1, sticky=Tkinter.E + Tkinter.W)
         self.b2 = Tkinter.Button(self.frame, text="OK", command=self.add_pv_to_list)
-        self.b2.grid(row=9, column=2, sticky=Tkinter.E+Tkinter.W)
-
+        self.b2.grid(row=5, column=2, sticky=Tkinter.E + Tkinter.W)
         self.frame.pack()
 
     def add_pv_to_list(self):
@@ -1283,16 +1272,6 @@ class AddLifetime(tkutil.DialogBox):
         mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
 
         self.main_window.parameters.results.append(mrr)
-
-        #now retrieve and set beam dynamics using ca_abstraction_mapping.py
-        number_of_bunches = float(self.i4.get())
-        beam_current_min = float(self.i5.get())
-        beam_current_max = float(self.i6.get())
-
-        # Set variable for use in lifetime_proxy_function
-        print('setting number of bunches to {}'.format(number_of_bunches))
-        ca_abstraction_mapping.NUMBER_OF_BUNCHES = number_of_bunches
-        self.main_window.parameters.beam_current_bounds = beam_current_min, beam_current_max
 
         self.hide()
 
