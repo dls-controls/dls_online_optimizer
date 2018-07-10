@@ -103,7 +103,6 @@ class MainWindow(Tkinter.Frame):
         class in the algorithm file.
         """
         store_address = self.parameters.store_address
-        global algo_frame
 
         # load parameters
         for filename in os.listdir('{0}/PARAMETERS'.format(store_address)):

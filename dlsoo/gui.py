@@ -1,4 +1,3 @@
-import csv
 import datetime
 import imp
 import os
@@ -13,7 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import cothread
-from . import ca_abstraction_mapping, config, interactors, plot, tkutil, util
+from . import config, interactors, plot, tkutil, util
 
 
 class InvalidEntry(Exception):
@@ -176,13 +175,13 @@ class MainWindow(Tkinter.Frame):
         self.lifetime_add = Tkinter.Button(self.parent, text="Add Lifetime", command=self.show_add_lifetime_window)
         self.lifetime_add.grid(row=2, column=3, rowspan=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.beam_min_label = Tkinter.Label(self.parent, text="Min current:")
-        self.beam_min_label.grid(row=1, column=4)
+        self.beam_min_label.grid(row=1, column=4, sticky=Tkinter.E)
         self.beam_min_entry = Tkinter.Entry(self.parent)
-        self.beam_min_entry.grid(row=1, column=5)
+        self.beam_min_entry.grid(row=1, column=5, sticky=Tkinter.W)
         self.beam_max_label = Tkinter.Label(self.parent, text="Max current:")
-        self.beam_max_label.grid(row=2, column=4)
+        self.beam_max_label.grid(row=2, column=4, sticky=Tkinter.E)
         self.beam_max_entry = Tkinter.Entry(self.parent)
-        self.beam_max_entry.grid(row=2, column=5)
+        self.beam_max_entry.grid(row=2, column=5, sticky=Tkinter.W)
         self.btn_output_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_obj)
         self.btn_output_params_rmv.grid(row=1, column=6, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
