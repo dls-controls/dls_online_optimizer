@@ -1270,7 +1270,7 @@ class AddLifetime(tkutil.DialogBox):
         iid = self.main_window.Toutput_params.insert('', 'end', text=self.i0.get(), values=(self.i1.get(), self.i2.get(), mrr.max_min_text, mrr.inj_setting_text))
         mrr.list_iid = iid
         mrr.mr_label = self.i0.get()
-        mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
+        mrr.ar_label = self.i0.get()
 
         self.main_window.parameters.results.append(mrr)
 
