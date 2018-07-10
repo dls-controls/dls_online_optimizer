@@ -895,30 +895,14 @@ class AddBulkPv(tkutil.DialogBox):
         """
         This class is for reading a csv file with list of parameter PVs, which are then put into the column of parameter PVs in the 'Add Bulk Parameter PVs' window
         """
+        pv_file = tkFileDialog.askopenfile()
+        if pv_file is not None:
+            self.i_file_address.delete(0, 'end')
+            self.i_file_address.insert(0, pv_file.name)
 
-        store_directory = tkFileDialog.askopenfile()
-        self.i_file_address.delete(0, 'end')
-        self.i_file_address.insert(0, store_directory.name)
-        groupPV_address = store_directory
-
-        print groupPV_address
-
-        group_file = open(groupPV_address.name, 'r')
-        wr = csv.reader(group_file)
-
-        addresses = []
-
-        for row in wr:
-            addresses.append(row[0:1][0])
-
-        for i in addresses:
-
-            if i == addresses[-1]:
-                self.pv_name_box.insert(Tkinter.END, i)
-                return
-
-            self.pv_name_box.insert(Tkinter.END, '{0}\n'.format(i))
-
+            with open(pv_file.name, 'r') as f:
+                all_pvs = [line.strip() for line in f.readlines()]
+                self.pv_name_box.insert(Tkinter.END, '\n'.join(all_pvs))
 
     def _get_entry_value(self, entry, name, conversion):
         try:
