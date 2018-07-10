@@ -863,7 +863,7 @@ class AddBulkPv(tkutil.DialogBox):
         self.frame = Tkinter.Frame(self)
 
         self.setting_mode = Tkinter.IntVar()            #this is for which method of defining the parameter bounds is being used
-        self.setting_mode.set(1)
+        self.setting_mode.set(0)
 
         Tkinter.Label(self.frame, text="Group name:").grid(row=0, column=0, sticky=Tkinter.E, pady=(10, 0))
         self.group_name_entry = Tkinter.Entry(self.frame)
@@ -901,9 +901,10 @@ class AddBulkPv(tkutil.DialogBox):
 
         self.r0 = Tkinter.Radiobutton(self.frame, text="Define PV Change", variable=self.setting_mode, value=0)
         self.r0.grid(row=7, column=1)
-
+        self.r0.configure(state=Tkinter.DISABLED)
         self.r2 = Tkinter.Radiobutton(self.frame, text="Define PV Bounds", variable=self.setting_mode, value=1)
         self.r2.grid(row=7, column=0)
+        self.r2.configure(state=Tkinter.DISABLED)
 
         self.b0 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
         self.b0.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
