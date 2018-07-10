@@ -76,14 +76,7 @@ class TargetSelector(tkutil.DialogBox):
         self.configure(background='lightblue')
         # Border since regular window decoraion is removed by
         # overrideredirect()
-        self.config(borderwidth=5, relief=Tkinter.RIDGE)
-        # update own geometry so we can calculate positions
-        self.update()
-        # centre inside parent widget
-        x = parent.winfo_rootx() + parent.winfo_width() / 2 - self.winfo_width() / 2
-        y = parent.winfo_rooty() + parent.winfo_height() / 2 - self.winfo_height() / 2
-        self.geometry('+{}+{}'.format(x, y))
-        self.update()
+        self.config(borderwidth=2, relief=Tkinter.RIDGE)
 
     def machine_selected(self):
         return self.selected.get() == 2
