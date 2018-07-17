@@ -48,6 +48,8 @@ def abstract_caget(pv, throw=False):
     standard channel access 'get' function using cothread
     """
     print('caget {}'.format(pv))
+    # Ensure cothread can handle the PV - unicode strings can be misunderstood
+    pv = str(pv)
     if pv in ca_abstraction_mapping.name_to_function_mapping:
         return ca_abstraction_mapping.name_to_function_mapping[pv]()
     else:
