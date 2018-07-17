@@ -94,14 +94,14 @@ def measure_results(measurement_vars, get_command):
     counts = []
     dev = []
     err = []
-    	
+
     #for each objective
     for i in range(len(measurement_vars)):
 
         result = int(measurement_vars[i].min_counts) * [0.]
-	print(measurement_vars[i].min_counts), "min counts"
+        print(measurement_vars[i].min_counts), "min counts"
         std = int(measurement_vars[i].min_counts) * [0.]
-	#print result
+        #print result
         for j in range(int(measurement_vars[i].min_counts)):
 
             value = get_command(measurement_vars[i].pv)
@@ -109,8 +109,8 @@ def measure_results(measurement_vars, get_command):
             std[j] = value ** 2
             #j += 1   #???
             time.sleep(measurement_vars[i].delay)
-	
-        mean = sum(result) / measurement_vars[i].min_counts  
+
+        mean = sum(result) / measurement_vars[i].min_counts
         standard_deviation = (sum(std) / measurement_vars[i].min_counts) - mean ** 2
         standard_deviation = math.sqrt(standard_deviation) + random.randint(1,5)
 
@@ -127,28 +127,28 @@ def measure_results(measurement_vars, get_command):
         if anomaly == True:
             mean = sum(result) / len(result)
             standard_deviation = (sum(std) / len(result)) - mean ** 2
-            standard_deviation = math.sqrt(standard_deviation)  
-	
+            standard_deviation = math.sqrt(standard_deviation)
 
-        stat_err = standard_deviation / math.sqrt(len(result))  
-	print(stat_err), "util stat_err "
-	print(standard_deviation), "util stand_div "
+
+        stat_err = standard_deviation / math.sqrt(len(result))
+        print(stat_err), "util stat_err "
+        print(standard_deviation), "util stand_div "
         average.append(mean)
         counts.append(len(result))
         dev.append(standard_deviation)
         err.append(stat_err)
-    
 
-   
-		
+
+
+
     results = []
     for i in range(len(average)):
         results.append(measurement(mean=average[i], counts=counts[i], dev=dev[i], err=err[i]))
 
 
-                                                                            
 
-        		
+
+
     return results
 
 def find_group_a_bounds(param_var_min, param_var_max, initial_values, set_relative):

@@ -101,21 +101,21 @@ class Optimiser(object):
         percentage_interval = (1./self.max_iter)/self.swarm_size                      #calculate percentage update per measurement
         results = []
         errors = []
-	stand_div = [] 	
-	
+        stand_div = []
+
         for i in range(len(swarm)):
 
             self.interactor.set_ap(swarm[i].position_i)                               #configure machine for measurement
-            all_data = self.interactor.get_ar()                                              #perform measuremen 
+            all_data = self.interactor.get_ar()                                              #perform measuremen
             all_results = [i.mean for i in all_data]                                  #retrieve mean from measurement
             all_errors = [i.err for i in all_data]                                    #retrieve error from measurement
-            all_std = [i.dev for i in all_data]					      #retrieve the std from measurement - rhs 13/07/18
-	    
+            all_std = [i.dev for i in all_data]                                              #retrieve the std from measurement - rhs 13/07/18
+
             results.append(all_results)
             errors.append(all_errors)
             stand_div.append(all_std)                                                       #rhs 13/07/18
             #if std == errors:
-		#print "std = err!" 
+                #print "std = err!"
             completed_percentage += percentage_interval                               #update percentage bar on progress plot
             print completed_percentage*100,'%'
 
@@ -128,7 +128,7 @@ class Optimiser(object):
                 break
 
 
-        return results, errors, stand_div 
+        return results, errors, stand_div
 
 
     def dump_fronts(self, fronts, iteration):
@@ -144,7 +144,7 @@ class Optimiser(object):
         f = file("{0}/FRONTS/fronts.{1}".format(self.store_location, iteration), "w")             #open file
         f.write("fronts = ((\n")
         for i, data in enumerate(fronts):
-            f.write("    ({0}, {1}, {2}, {3}),\n".format(data[0], tuple(data[1]), data[2], data[3]))               #insert each solution in front  --rhs added 3rd data for std 13/07/18     
+            f.write("    ({0}, {1}, {2}, {3}),\n".format(data[0], tuple(data[1]), data[2], data[3]))               #insert each solution in front  --rhs added 3rd data for std 13/07/18
         f.write("),)\n")
         f.close()                                                                                 #close file
 
@@ -318,8 +318,8 @@ class Optimiser(object):
                 break
 
             swarm[i].fit_i = objectives[i]                                                 #update current objective fit.
-            swarm[i].error = errors[i]    						   #update current objective error.
-	    swarm[i].stand_div = stand_div[i]							   #rhs 13/07/18                                                 
+            swarm[i].error = errors[i]                                                       #update current objective error.
+            swarm[i].stand_div = stand_div[i]                                                           #rhs 13/07/18
 
             if initial_evaluation==False:
                 if self.pareto_test(swarm[i].fit_i,swarm[i].fit_best_i) == True:           #check if this objective fit is a personal best for the particle.
@@ -407,8 +407,8 @@ class Particle:
         self.fit_i = ()                                                                                       #particle's fit
         self.fit_best_i = ()                                                                                  #particle's best fit
         self.bounds = (par_min, par_max)                                                                      #particle's parameter bounds
-        self.error = ()  										      #particle's error in fit
-	self.std = ()											      #particles std in fit     --- rhs 
+        self.error = ()                                                                                        #particle's error in fit
+        self.std = ()                                                                                              #particles std in fit     --- rhs
 
     def update_velocity(self, inertia, social_param, cog_param):
         """
