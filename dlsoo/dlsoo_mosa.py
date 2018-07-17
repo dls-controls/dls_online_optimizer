@@ -94,6 +94,7 @@ class Optimiser(object):
         self.domFrontParam = []                             #keeps track of the points in parameter space that is the current algorithm front.
         self.domFrontObjectives = []                        #keeps track of the points of the front in objective space.
         self.domFrontErrors = []                            #keeps track of the error on each objective on the front in objective space.
+        self.domFrontDevs = []                                     #attribute to track standard deviation added rhs 17/07/18
         #dumpFlag is used to let the algorithm know to save the front every so often
         try:
             self.dumpFlag = settings_dict['dumpFlag']
@@ -126,7 +127,8 @@ class Optimiser(object):
         #the measurment class in dls_optimiser_util
         f = [i.mean for i in measure]
         unc = [i.err for i in measure]
-        return (f, unc)
+        dev = [i.dev for i in measure] #rhs extracting deviation for plotting 17/07/18
+        return (f, unc, dev)
 
     def setUnifRanPoints(self):
         '''
@@ -186,11 +188,13 @@ class Optimiser(object):
         if notDom:
             self.domFrontObjectives.append(newObj[0])
             self.domFrontErrors.append(newObj[1])
+            self.domFrontDevs.append(newObj[2]) #front deviation added rhs 17/07/18
             self.domFrontParam.append(self.param)
             #now to delete the elements use x to keep track of how many are deleted
             self.domFrontObjectives = [self.domFrontObjectives[i] for i in range(len(self.domFrontObjectives)) if not (i in dominatedElements)]
             self.domFrontParam = [self.domFrontParam[i] for i in range(len(self.domFrontParam)) if not (i in dominatedElements)]
             self.domFrontErrors = [self.domFrontErrors[i] for i in range(len(self.domFrontErrors)) if not (i in dominatedElements)]
+            self.domFrontDevs = [self.domFrontDevs[i] for i in range(len(self.domFrontDevs)) if not (i in dominatedElements)] #added for standard deviation error rhs 17/07/18
 
     def dumpFront(self):
         '''
@@ -200,7 +204,7 @@ class Optimiser(object):
         f.write('fronts = ((\n')
         #we need two ( so that this code is consistent with the DLS plot library.
         for i in range(len(self.domFrontObjectives)):
-            f.write('({0}, {1}, {2}), \n'.format(tuple(self.domFrontParam[i][:]),tuple(self.domFrontObjectives[i][:]), tuple(self.domFrontErrors[i][:])))
+            f.write('({0}, {1}, {2}, {3}), \n'.format(tuple(self.domFrontParam[i][:]),tuple(self.domFrontObjectives[i][:]), tuple(self.domFrontErrors[i][:]), tuple(self.domFrontDevs[i][:]))) #added devs to front dump rhs 17/07/18
         f.write('),) \n')
         f.close()
 
@@ -253,6 +257,7 @@ class Optimiser(object):
         self.domFrontParam.append(currentParams)
         self.domFrontObjectives.append(currentObj[0])
         self.domFrontErrors.append(currentObj[1])
+        self.domFrontDevs.append(currentObj[2]) #rhs deviation error 17/07/18
         self.setIinitOutTemp()
         #set the initial input temperture
         self.inTemp = [(self.up[i] - self.down[i])/2 for i in range(self.paramCount)]

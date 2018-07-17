@@ -22,7 +22,7 @@ def lifetime_proxy():
     PMT_count = caget('SR-DI-COUNT-01:MEAN')+0.001
     objective =  PMT_count /  PMT_ref(I_beam) * sy_ref / sy  # rescaled n. of losses (note it was sy / sy_ref, corrected after IPAC)
     print('LT_proxy_resc='+str(objective))
-    
+
 #    epsilon_y = caget('SR-DI-EMIT-01:VEMIT_MEAN')
 #    bunch_length_value = bunch_length(I_beam)
 #    objective = I_beam/(PMT_count*bunch_length_value*math.sqrt(epsilon_y))

@@ -1,4 +1,3 @@
-import csv
 import datetime
 import imp
 import os
@@ -13,7 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import cothread
-from . import ca_abstraction_mapping, config, interactors, plot, tkutil, util
+from . import config, interactors, plot, tkutil, util
 
 
 class InvalidEntry(Exception):
@@ -176,13 +175,13 @@ class MainWindow(Tkinter.Frame):
         self.lifetime_add = Tkinter.Button(self.parent, text="Add Lifetime", command=self.show_add_lifetime_window)
         self.lifetime_add.grid(row=2, column=3, rowspan=1, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
         self.beam_min_label = Tkinter.Label(self.parent, text="Min current:")
-        self.beam_min_label.grid(row=1, column=4)
+        self.beam_min_label.grid(row=1, column=4, sticky=Tkinter.E)
         self.beam_min_entry = Tkinter.Entry(self.parent)
-        self.beam_min_entry.grid(row=1, column=5)
+        self.beam_min_entry.grid(row=1, column=5, sticky=Tkinter.W)
         self.beam_max_label = Tkinter.Label(self.parent, text="Max current:")
-        self.beam_max_label.grid(row=2, column=4)
+        self.beam_max_label.grid(row=2, column=4, sticky=Tkinter.E)
         self.beam_max_entry = Tkinter.Entry(self.parent)
-        self.beam_max_entry.grid(row=2, column=5)
+        self.beam_max_entry.grid(row=2, column=5, sticky=Tkinter.W)
         self.btn_output_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_obj)
         self.btn_output_params_rmv.grid(row=1, column=6, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
@@ -514,8 +513,9 @@ class MainWindow(Tkinter.Frame):
 
 class PointDetails(Tkinter.Frame):
     """
-    This class is for the window that is shown when clicking on a point in the final Pareto front. It requires reading saved files
-    that are in Pickle format.
+    This class is for the window that is shown when clicking on a point in
+    the final Pareto front. It requires reading saved files that are in
+    Pickle format.
     """
 
     def __init__(self, parent, parameters):
@@ -752,7 +752,7 @@ class AddPv(tkutil.DialogBox):
         self.setting_mode = Tkinter.IntVar()
         self.setting_mode.set(0)
 
-        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
+        Tkinter.Label(self.frame, text="PV name:").grid(row=0, column=0, sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
 
@@ -783,7 +783,7 @@ class AddPv(tkutil.DialogBox):
 
     def add_pv_to_list(self):
         """
-        Once defined, collect PV address + other options and create parameter object
+        Once defined, collect PV name + other options and create parameter object
         """
 
         details = (self.i0.get(), self.i1.get(), self.i2.get(), self.i3.get(), self.setting_mode.get())
@@ -1186,96 +1186,6 @@ class PlotProgress(Tkinter.Frame):
         self.canvas.get_tk_widget().pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=True)
 
 
-class AddLifetime(tkutil.DialogBox):
-    """
-    This class is for adding LIFETIME PROXY as an objective
-    """
-
-    def __init__(self, main_window):
-        tkutil.DialogBox.__init__(self, main_window.parent, True)
-        self.main_window = main_window
-        self.title('Add Lifetime PV')
-
-    def create_body(self):
-        """
-        Generate 'Add Lifetime PV' GUI
-        """
-        self.frame = Tkinter.Frame(self)
-
-        self.max_min_setting = Tkinter.IntVar()
-        self.max_min_setting.set(1)                     #this setting is for choosing whether objective will maximised or minimised
-
-        self.inj_setting = Tkinter.IntVar()
-        self.inj_setting.set(0)                         #0 means don't inject, 1 means inject
-
-        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0, sticky=Tkinter.E)
-        self.i0 = Tkinter.Entry(self.frame)
-        self.i0.grid(row=0, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-        self.i0.insert(0, 'lifetime_proxy')
-        self.i0['state'] = 'disabled'                   #the PV address must be 'lifetime_proxy'
-
-        Tkinter.Label(self.frame, text="Measurements:").grid(row=1, column=0, sticky=Tkinter.E)
-        self.i1 = Tkinter.Entry(self.frame)
-        self.i1.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-
-        Tkinter.Label(self.frame, text="Delay /s:").grid(row=2, column=0, sticky=Tkinter.E)
-        self.i2 = Tkinter.Entry(self.frame)
-        self.i2.grid(row=2, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-
-        self.r0 = Tkinter.Radiobutton(self.frame, text="Minimise", variable=self.max_min_setting, value=0)
-        self.r0.grid(row = 3, column=0, sticky=Tkinter.W)
-        self.r1 = Tkinter.Radiobutton(self.frame, text="Maximise", variable=self.max_min_setting, value=1)
-        self.r1.grid(row = 3, column=1, sticky=Tkinter.W)
-
-        self.r2 = Tkinter.Radiobutton(self.frame, text="Non-injection", variable = self.inj_setting, value=0)
-        self.r2.grid(row=4, column=0, sticky=Tkinter.W)
-
-        self.r3 = Tkinter.Radiobutton(self.frame, text="Injection", variable = self.inj_setting, value=1)
-        self.r3.grid(row=4, column=1, sticky=Tkinter.W)
-
-        self.b1 = Tkinter.Button(self.frame, text="Cancel", command=self.hide)
-        self.b1.grid(row=5, column=1, sticky=Tkinter.E + Tkinter.W)
-        self.b2 = Tkinter.Button(self.frame, text="OK", command=self.add_pv_to_list)
-        self.b2.grid(row=5, column=2, sticky=Tkinter.E + Tkinter.W)
-        self.frame.pack()
-
-    def add_pv_to_list(self):
-        """
-        Once objective has been defined, create object for the objective
-        """
-        #create object
-        mrr = config.MrRepresentation()
-
-        #retrieve information from GUI
-        mrr.mr_obj = config.DlsMeasurementVar(self.i0.get(), float(self.i1.get()), float(self.i2.get()))
-
-        #max/min settings
-        if self.max_min_setting.get() == 0:
-            mrr.max_min_text = "Minimise"
-            mrr.max_min_sign = "+"
-            mrr.mr_to_ar_sign = "+"
-        elif self.max_min_setting.get() == 1:
-            mrr.max_min_text = "Maximise"
-            mrr.max_min_sign = "-"
-            mrr.mr_to_ar_sign = "-"
-
-        #injection/non-injection settings
-        mrr.inj_setting =  self.inj_setting.get()
-        if self.inj_setting.get() == 0:
-            mrr.inj_setting_text = "Non-injection"
-        elif self.inj_setting.get() == 1:
-            mrr.inj_setting_text = "Injection"
-
-        iid = self.main_window.Toutput_params.insert('', 'end', text=self.i0.get(), values=(self.i1.get(), self.i2.get(), mrr.max_min_text, mrr.inj_setting_text))
-        mrr.list_iid = iid
-        mrr.mr_label = self.i0.get()
-        mrr.ar_label = self.i0.get()
-
-        self.main_window.parameters.results.append(mrr)
-
-        self.hide()
-
-
 class AddObjFunc(tkutil.DialogBox):
     """This class is for adding an objective."""
 
@@ -1295,7 +1205,7 @@ class AddObjFunc(tkutil.DialogBox):
         self.inj_setting = Tkinter.IntVar()
         self.inj_setting.set(0)  # 0 means don't inject, 1 means inject
 
-        Tkinter.Label(self.frame, text="PV address:").grid(row=0, column=0,
+        Tkinter.Label(self.frame, text="PV name:").grid(row=0, column=0,
                                                             sticky=Tkinter.E)
         self.i0 = Tkinter.Entry(self.frame)
         self.i0.grid(row=0, column=1, columnspan=2,
@@ -1374,7 +1284,29 @@ class AddObjFunc(tkutil.DialogBox):
                                                             mrr.inj_setting_text))
         mrr.list_iid = iid
         mrr.mr_label = self.i0.get()
-        mrr.ar_label = "{0}{1}".format(mrr.max_min_sign, self.i0.get())
+        mrr.ar_label = self.i0.get()
 
         self.main_window.parameters.results.append(mrr)
         self.hide()
+
+
+class AddLifetime(AddObjFunc):
+    """
+    This class is for adding LIFETIME PROXY as an objective.
+    It inherits from AddObjFunc as the functionality is almost exactly
+    the same.
+    """
+
+    def __init__(self, main_window):
+        AddObjFunc.__init__(self, main_window, True)
+        self.main_window = main_window
+        self.title('Add lifetime proxy')
+
+    def create_body(self):
+        """
+        Generate 'Add Lifetime PV' GUI
+        """
+        AddObjFunc.create_body(self)
+        # the PV name must be 'lifetime_proxy'
+        self.i0.insert(0, 'lifetime_proxy')
+        self.i0['state'] = 'disabled'

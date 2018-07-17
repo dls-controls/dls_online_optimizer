@@ -11,6 +11,7 @@ import operator
 
 import matplotlib.cm as cm
 import numpy
+import matplotlib.pyplot as plt
 import matplotlib.patches as pat
 
 
@@ -159,37 +160,57 @@ def plot_pareto_fronts_interactive(file_names,
         ax.set_axis_bgcolor('black')
 
     for nf, f in enumerate(fs):
+
         for ni, i in enumerate(f):
-            # take into account the change of sign for max/min
+
+            #take into account the change of sign for max/min
             x_vals.append(i[1][0]*signConverter[0])
             y_vals.append(i[1][1]*signConverter[1])
 
-            # add error ellipses
+            #add standard error of mean
             x_err = i[2][0]
             y_err = i[2][1]
-            # diam_x,y substitutes err_x,y
-            diam_x = x_err * 2
-            diam_y = y_err * 2
+
+
+            #diam_x = x_err * 2
+            #diam_y = y_err * 2
+
+            #standard_dev_err_X = i[3][0]
+            dev_errY = i[3][1]
+            dev_errX = i[3][0]
+
+
+            #fig, (ax0, ax1) = plt.subplots(nrows =2, sharex = True)
+            #ax0.errorbar(x_vals, y_vals, yerr= dev_errY, fmt='-o')
+             #plt.show()
+
+
 
             if nf == len(fs) - 1:
-                ell = pat.Ellipse(xy=(i[1][0]*signConverter[0], i[1][1]*signConverter[1]),
-                                  width=diam_x,
-                                  height=diam_y)
-                ell.set_facecolor('none')
-                ell.set_edgecolor(ellipse_edge_color)
-                ax.add_artist(ell)
+                box = pat.Rectangle(xy=(i[1][0]*signConverter[0] - 0.5*x_err, i[1][1]*signConverter[1] - 0.5*y_err), width=x_err, height=y_err) # changed for standard error of mean boxes rather than ellipses rhs 16/07/18
+                box.set_facecolor('none')
+                ax.add_artist(box)
+
+
 
         px_vals = [x for (x, y) in sorted(zip(x_vals, y_vals))]
         py_vals = [y for (x, y) in sorted(zip(x_vals, y_vals))]
 
-        if nf == len(fs) - 1:  # Plot the FINAL front in bold
-            ax.plot(px_vals, py_vals, color=colors[nf], marker='D', picker=5, linestyle='None')
+
+        #Plot the FINAL front in bold
+        if nf == len(fs) - 1:
+            ax.errorbar(px_vals, py_vals, dev_errX, dev_errY, color= 'blue',ecolor= 'crimson', marker='o', picker=5, linestyle='None')  #bars not ellipses added rhs 16/07/18
+
             new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
             ax.plot(new_x, new_y, color=colors[nf], linewidth=2)
-        else:  # Plot the past fronts normally
+
+        #Plot the past fronts normally
+        else:
             ax.plot(px_vals, py_vals, color=colors[nf], marker='.', linestyle='None')
+
             new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
             ax.plot(new_x, new_y, color=colors[nf], linestyle='--')
+
 
         x_vals = []
         y_vals = []
