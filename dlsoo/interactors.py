@@ -16,10 +16,6 @@ import pickle
 import tkMessageBox
 
 
-#  MAIN INTERACTOR FOR BASIC (SIMULATION)
-# Many of the functions within this class are used in main.py and the 
-# algorithm files. The most important to understand is get_mr.
-
 class sim_machine_interactor_bulk_base:
 
     def __init__(self,
