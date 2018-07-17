@@ -192,7 +192,7 @@ def plot_pareto_fronts_interactive(file_names,
 
             #Plot the FINAL front in bold
             if nf == len(fs) - 1:
-                ax.errorbar(px_vals, py_vals, dev_errX, dev_errY, color= 'blue',ecolor= 'crimson', marker='o', picker=5, linestyle='None')  #bars not ellipses added rhs 16/07/18
+                ax.errorbar(px_vals, py_vals, dev_errY, dev_errX, color= 'blue',ecolor= 'crimson', marker='o', picker=5, linestyle='None')  #bars not ellipses added rhs 16/07/18
 
                 new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
                 ax.plot(new_x, new_y, color=colors[nf], linewidth=2)
