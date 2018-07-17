@@ -141,6 +141,7 @@ class dls_machine_interactor_bulk_base:
     def get_ar(self):
         mrs = self.get_mr()
         ars = self.mr_to_ar(mrs)
+	
         return ars
 
     def find_a_bounds(self, param_var_min, param_var_max):
