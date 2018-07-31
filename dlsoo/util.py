@@ -112,7 +112,7 @@ def measure_results(measurement_vars, get_command):
 	
         mean = sum(result) / measurement_vars[i].min_counts  
         standard_deviation = (sum(std) / measurement_vars[i].min_counts) - mean ** 2
-        standard_deviation = math.sqrt(standard_deviation) + random.randint(1,5)
+        standard_deviation = math.sqrt(standard_deviation)
 
         #detect and remove any outliers
         anomaly = False
