@@ -51,7 +51,7 @@ def PMT_ref(x):  # MA 17/4/2018
 
     #PMT_ref = 2.1e-6*x**4 -0.0024*x**3 + 0.81*x**2 -0.88*x -0.55
     data = read_data() 
-    PMT_ref = data[5]*x**4 + data[4]*x**3 + data[3]*x**2 + data[2]*x + data[1]    
+    PMT_ref = data[6]*x**5 + data[5]*x**4 + data[4]*x**3 + data[3]*x**2 + data[2]*x + data[1]    
     return PMT_ref
 
 

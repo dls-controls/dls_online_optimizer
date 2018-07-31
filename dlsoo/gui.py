@@ -189,29 +189,34 @@ class MainWindow(Tkinter.Frame):
         
         #ADD LIFETIME PROXY CALIBRATION SETTINGS 
         self.poly_label_0 = Tkinter.Label(self.parent, text = "0")
-        self.poly_label_0.grid(row = 5, column = 3)
+        self.poly_label_0.grid(row = 5, column = 2)
         self.poly_label_1 = Tkinter.Label(self.parent, text = "1")
-        self.poly_label_1.grid(row = 5, column = 4)
+        self.poly_label_1.grid(row = 5, column = 3)
         self.poly_label_2 = Tkinter.Label(self.parent, text = "2")
-        self.poly_label_2.grid(row = 5, column = 5)
+        self.poly_label_2.grid(row = 5, column = 4)
         self.poly_label_3 = Tkinter.Label(self.parent, text = "3")
-        self.poly_label_3.grid(row = 5, column = 6)
+        self.poly_label_3.grid(row = 5, column = 5)
         self.poly_label_4 = Tkinter.Label(self.parent, text = "4")
-        self.poly_label_4.grid(row = 5, column = 7)
+        self.poly_label_4.grid(row = 5, column = 6)
+	self.poly_label_5 = Tkinter.Label(self.parent, text = "5")
+	self.poly_label_5.grid(row = 5, column = 7)
         
         self.poly_entry_0 = Tkinter.Entry(self.parent)
-        self.poly_entry_0.grid(row = 6, column = 3)
+        self.poly_entry_0.grid(row = 6, column = 2)
         self.poly_entry_1 = Tkinter.Entry(self.parent)
-        self.poly_entry_1.grid(row = 6, column = 4)
+        self.poly_entry_1.grid(row = 6, column = 3)
         self.poly_entry_2 = Tkinter.Entry(self.parent)
-        self.poly_entry_2.grid(row = 6, column = 5)
+        self.poly_entry_2.grid(row = 6, column = 4)
         self.poly_entry_3 = Tkinter.Entry(self.parent)
-        self.poly_entry_3.grid(row = 6, column = 6)
+        self.poly_entry_3.grid(row = 6, column = 5)
         self.poly_entry_4 = Tkinter.Entry(self.parent)
-        self.poly_entry_4.grid(row = 6, column = 7)
-        
+        self.poly_entry_4.grid(row = 6, column = 6)
+	self.poly_entry_5 = Tkinter.Entry(self.parent)
+	self.poly_entry_5.grid(row = 6, column = 7)        
+
+
         self.poly_entry_description = Tkinter.Label(self.parent, text = "Lifetime polynomial coefficients:") 
-        self.poly_entry_description.grid(row = 6, column = 2)
+        self.poly_entry_description.grid(row = 6, column = 1)
                 
         self.vert_beam_size = Tkinter.Label(self.parent, text = "Vertical Beam Size / micro m")
         self.vert_beam_size.grid(row = 3, column = 3)
@@ -281,10 +286,11 @@ class MainWindow(Tkinter.Frame):
                 x2 = self.poly_entry_2.get()
                 x3 = self.poly_entry_3.get()
                 x4 = self.poly_entry_4.get()
+		x5 = self.poly_entry_5.get()
                 vert_beam_size = self.vert_beam_size_entry.get() 
                
                 
-                data = np.array([float(vert_beam_size), float(x0), float(x1), float(x2), float(x3), float(x4)])
+                data = np.array([float(vert_beam_size), float(x0), float(x1), float(x2), float(x3), float(x4), float(x5)])
                 #np.savetxt('{}/lifetime_proxy_details'.format(self.parameters.save_location), data, delimiter = ",")       
                 np.savetxt('./lifetime_proxy_details', data, delimiter = ",")  
 
