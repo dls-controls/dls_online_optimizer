@@ -109,7 +109,7 @@ class Optimiser(object):
             all_data = self.interactor.get_ar()                                              #perform measuremen
             all_results = [i.mean for i in all_data]                                  #retrieve mean from measurement
             all_errors = [i.err for i in all_data]                                    #retrieve error from measurement
-            all_std = [i.dev for i in all_data]					      #retrieve the std from measurement - rhs 13/07/18
+            all_std = [i.dev for i in all_data]	                                       #retrieve the std from measurement - rhs 13/07/18
 
             results.append(all_results)
             errors.append(all_errors)
@@ -407,8 +407,8 @@ class Particle:
         self.fit_i = ()                                                                                       #particle's fit
         self.fit_best_i = ()                                                                                  #particle's best fit
         self.bounds = (par_min, par_max)                                                                      #particle's parameter bounds
-        self.error = ()  										      #particle's error in fit
-	self.std = ()											      #particles std in fit     --- rhs
+        self.error = ()                                                                                       #particle's error in fit
+        self.std = ()                                                                                         #particles std in fit     --- rhs
 
     def update_velocity(self, inertia, social_param, cog_param):
         """
