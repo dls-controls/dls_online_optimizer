@@ -12,7 +12,7 @@ from __future__ import division
 import operator
 
 import matplotlib.cm as cm
-import numpy 
+import numpy
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat
 
@@ -139,9 +139,9 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
         execfile(file_name)
 
         fs.append(locals()['fronts'][0])
-    print "fs is: {}".format(fs) 
+    print "fs is: {}".format(fs)
 
-    
+
     #different view modes for the final plot
 
     if view_mode == "No focus":
@@ -152,83 +152,81 @@ def plot_pareto_fronts_interactive(file_names, ax, axis_labels, interactor, call
             x_vals = []
             y_vals = []
             std_Y = []
-            std_X = [] 
-            mean_errX = []                 
-            mean_errY = []    
+            std_X = []
+            mean_errX = []
+            mean_errY = []
             STD_bar_X = []
             STD_bar_Y = []
             mean_bar_X = []
             mean_bar_Y = []
 
             for ni, i in enumerate(f):
-               
+
                 #take into account the change of sign for max/min
                 x_vals.append(i[1][0]*signConverter[0])
                 y_vals.append(i[1][1]*signConverter[1])
 
-                #add standard error of mean 
-                 
-                mean_errX.append(i[2][0]) 
-                mean_errY.append(i[2][1]) 
-		
-		
+                #add standard error of mean
+
+                mean_errX.append(i[2][0])
+                mean_errY.append(i[2][1])
+
+
                 #diam_x = x_err * 2
                 #diam_y = y_err * 2
-		
-		#standard_std_X = i[3][0]
-                
-		std_Y.append(i[3][1])
-		std_X.append(i[3][0])
-                
+
+        #standard_std_X = i[3][0]
+
+                std_Y.append(i[3][1])
+                std_X.append(i[3][0])
+
                 if nf == len(fs) - 1:
                         #print "[X_val, Y_val]                          Standard Dev.                               error of mean"
-                        #print "##########################################################"      
-                        #print ni                   
+                        #print "##########################################################"
+                        #print ni
                         #print px_vals[ni], py_vals[ni], std_X[ni], std_Y[ni], x_err[ni], y_err[ni]
-                         
-		        STD_bar_X.append(std_X[ni])
-                        STD_bar_Y.append(std_Y[ni]) 
+
+                        STD_bar_X.append(std_X[ni])
+                        STD_bar_Y.append(std_Y[ni])
                         mean_bar_X.append(mean_errX[ni])
-			mean_bar_Y.append(mean_errY[ni]) 
-		#fig, (ax0, ax1) = plt.subplots(nrows =2, sharex = True)
-		#ax0.errorbar(x_vals, y_vals, yerr= std_Y, fmt='-o')
- 		#plt.show()
-                
-               
+                        mean_bar_Y.append(mean_errY[ni])
+                        #fig, (ax0, ax1) = plt.subplots(nrows =2, sharex = True)
+                        #ax0.errorbar(x_vals, y_vals, yerr= std_Y, fmt='-o')
+                        #plt.show()
+
+
 
                 #if nf == len(fs) - 1:
-                    
+
                     #box = pat.Rectangle(xy=(x_vals[ni] - bar_errorX2[ni], y_vals[ni] - bar_errorY2[ni]), width=2*bar_errorX2[ni], height=2*bar_errorY2[ni], color = 'red') # changed for standard error of mean boxes rather than ellipses rhs 16/07/18
-                  
+
                     #box.set_facecolor('none')
                     #ax.add_artist(box)
-		   
-	    
-            	   
-            px_vals = [x for (x, y) in sorted(zip(x_vals, y_vals))]
-            py_vals = [y for (x, y) in sorted(zip(x_vals, y_vals))]
-            #print "the x values plotted:" , px_vals         
-            
+
+                px_vals = [x for (x, y) in sorted(zip(x_vals, y_vals))]
+                py_vals = [y for (x, y) in sorted(zip(x_vals, y_vals))]
+            #print "the x values plotted:" , px_vals
+
             #Plot the FINAL front in bold
             if nf == len(fs) - 1:
-		
-		ax.errorbar(px_vals, py_vals, STD_bar_Y, STD_bar_X, color= 'blue',ecolor= 'crimson', marker='o', picker=5, linestyle='None')  #bars not ellipses added rhs 16/07/18
-		 
-		#for i in range(len(bar_errorY2)):
-		    #box = pat.Rectangle(xy=(px_vals[i] - bar_errorX2[i], py_vals[i] - bar_errorY2[i]), width=2*bar_errorX2[i], height=2*bar_errorY2[i]) # changed for standard error of mean boxes rather than ellipses rhs 16/07/18
-                    #box.set_facecolor('none')
-                    #ax.add_artist(box)
-		for i in range(len(STD_bar_Y)):
-		    box = pat.Rectangle(xy=(px_vals[i] - mean_bar_X[i], py_vals[i] - mean_bar_Y[i]), width=2*mean_bar_X[i], height=2*mean_bar_Y[i]) # changed for standard error of mean boxes rather than ellipses rhs 16/07/18
-                    box.set_facecolor('none')
-                    ax.add_artist(box)
-		      
-                    
-			
+
+                ax.errorbar(px_vals, py_vals, STD_bar_Y, STD_bar_X, color= 'blue',ecolor= 'crimson', marker='o', picker=5, linestyle='None')  #bars not ellipses added rhs 16/07/18
+
+        #for i in range(len(bar_errorY2)):
+        #box = pat.Rectangle(xy=(px_vals[i] - bar_errorX2[i], py_vals[i] - bar_errorY2[i]), width=2*bar_errorX2[i], height=2*bar_errorY2[i]) # changed for standard error of mean boxes rather than ellipses rhs 16/07/18
+        #box.set_facecolor('none')
+        #ax.add_artist(box)
+            for i in range(len(STD_bar_Y)):
+                box = pat.Rectangle(xy=(px_vals[i] - mean_bar_X[i], py_vals[i] - mean_bar_Y[i]), width=2*mean_bar_X[i], height=2*mean_bar_Y[i]) # changed for standard error of mean boxes rather than ellipses rhs 16/07/18
+                box.set_facecolor('none')
+                ax.add_artist(box)
+
+
+
                 new_x, new_y = virtual_pareto_points(px_vals,py_vals,signConverter)
-		
+
                 ax.plot(new_x, new_y, color=colors[nf], linewidth=2)
-			
+
             #Plot the past fronts normally
             else:
                 ax.plot(px_vals, py_vals, color=colors[nf], marker='.', linestyle='None')

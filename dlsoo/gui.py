@@ -8,7 +8,7 @@ import Tkinter
 import ttk
 import tkFileDialog
 import tkMessageBox
-import numpy as np 
+import numpy as np
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -186,8 +186,8 @@ class MainWindow(Tkinter.Frame):
         self.beam_max_entry.grid(row=2, column=5)
         self.btn_output_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_obj)
         self.btn_output_params_rmv.grid(row=1, column=6, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
-        
-        #ADD LIFETIME PROXY CALIBRATION SETTINGS 
+
+        #ADD LIFETIME PROXY CALIBRATION SETTINGS
         self.poly_label_0 = Tkinter.Label(self.parent, text = "0")
         self.poly_label_0.grid(row = 5, column = 2)
         self.poly_label_1 = Tkinter.Label(self.parent, text = "1")
@@ -198,9 +198,9 @@ class MainWindow(Tkinter.Frame):
         self.poly_label_3.grid(row = 5, column = 5)
         self.poly_label_4 = Tkinter.Label(self.parent, text = "4")
         self.poly_label_4.grid(row = 5, column = 6)
-	self.poly_label_5 = Tkinter.Label(self.parent, text = "5")
-	self.poly_label_5.grid(row = 5, column = 7)
-        
+        self.poly_label_5 = Tkinter.Label(self.parent, text = "5")
+        self.poly_label_5.grid(row = 5, column = 7)
+
         self.poly_entry_0 = Tkinter.Entry(self.parent)
         self.poly_entry_0.grid(row = 6, column = 2)
         self.poly_entry_1 = Tkinter.Entry(self.parent)
@@ -211,23 +211,23 @@ class MainWindow(Tkinter.Frame):
         self.poly_entry_3.grid(row = 6, column = 5)
         self.poly_entry_4 = Tkinter.Entry(self.parent)
         self.poly_entry_4.grid(row = 6, column = 6)
-	self.poly_entry_5 = Tkinter.Entry(self.parent)
-	self.poly_entry_5.grid(row = 6, column = 7)        
+        self.poly_entry_5 = Tkinter.Entry(self.parent)
+        self.poly_entry_5.grid(row = 6, column = 7)
 
 
-        self.poly_entry_description = Tkinter.Label(self.parent, text = "Lifetime polynomial coefficients:") 
+        self.poly_entry_description = Tkinter.Label(self.parent, text = "Lifetime polynomial coefficients:")
         self.poly_entry_description.grid(row = 6, column = 1)
-                
+
         self.vert_beam_size = Tkinter.Label(self.parent, text = "Vertical Beam Size / micro m")
         self.vert_beam_size.grid(row = 3, column = 3)
         self.vert_beam_size_entry = Tkinter.Entry(self.parent)
         self.vert_beam_size_entry.grid(row = 4, column = 3)
         self.read_lifetime_details()
         self.update_lifetime_settings = Tkinter.Button(self.master, text = "Update Lifetime Settings", command = self.save_lifetime)
-        self.update_lifetime_settings.grid(row = 4, column = 4) 
-        
-        
-        
+        self.update_lifetime_settings.grid(row = 4, column = 4)
+
+
+
         ttk.Separator(self.parent, orient='horizontal').grid(row=7, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
         #SAVE DIRECTORY
@@ -278,7 +278,7 @@ class MainWindow(Tkinter.Frame):
         # The dialog for adding a lifetime proxy
         self.add_lifetime = AddLifetime(self)
         self.add_lifetime.hide()
-    
+
     def save_lifetime(self):
         #with open("{}/lifetime_proxy_details.txt".format(self.parameters.save_location), "w") as f:
                 x0 = self.poly_entry_0.get()
@@ -286,23 +286,22 @@ class MainWindow(Tkinter.Frame):
                 x2 = self.poly_entry_2.get()
                 x3 = self.poly_entry_3.get()
                 x4 = self.poly_entry_4.get()
-		x5 = self.poly_entry_5.get()
-                vert_beam_size = self.vert_beam_size_entry.get() 
-               
-                
+                x5 = self.poly_entry_5.get()
+                vert_beam_size = self.vert_beam_size_entry.get()
+
                 data = np.array([float(vert_beam_size), float(x0), float(x1), float(x2), float(x3), float(x4), float(x5)])
-                #np.savetxt('{}/lifetime_proxy_details'.format(self.parameters.save_location), data, delimiter = ",")       
-                np.savetxt('./lifetime_proxy_details', data, delimiter = ",")  
+                #np.savetxt('{}/lifetime_proxy_details'.format(self.parameters.save_location), data, delimiter = ",")
+                np.savetxt('./lifetime_proxy_details', data, delimiter = ",")
 
                 #f = file("{0}/lifetime_proxy_details.txt".format(self.parameters.save_location))
                 #f.write("Lifetime Proxy Calibration Settings \n")
                 #f.write("###################################\n\n")
                 #f.write("Vertical Beam Size:{}\n".format(vert_beam_size))
                 #f.write("calibration Curve: {0}  {1}  {2}  {3}  {4}".format(x0, x1, x2, x3, x4))
-               
+
     def return_save_location(self):
-        location = self.i_save_address.get() 
-        return location   
+        location = self.i_save_address.get()
+        return location
 
     def read_lifetime_details(self):
     #    if os.path.isfile("{}/lifetime_proxy_details".format(self.parameters.save_location)) == True:
@@ -320,7 +319,7 @@ class MainWindow(Tkinter.Frame):
                 pass
 
 
-        
+
     def close(self):
         self.parent.destroy()
         cothread.Quit()

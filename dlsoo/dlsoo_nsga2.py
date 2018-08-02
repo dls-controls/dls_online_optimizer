@@ -133,8 +133,8 @@ class Optimiser(object):
         p = solution([i.mean for i in y])
         p.x = x
         p.unc = [i.err for i in y]
-	p.dev = [i.dev for i in y] 
-        return p #p return now includes the standard deviation error in the solution 
+        p.dev = [i.dev for i in y]
+        return p #p return now includes the standard deviation error in the solution
 
     def dom(self, a, b):
         "a weakly dominates b"
@@ -353,7 +353,7 @@ class Optimiser(object):
 
     def evaluate_link(self, population):
         data = []
-	
+
         for in_pop in range(len(population)):
             # Configure machine for the measurement
             self.interactor.set_ap(population[in_pop])
@@ -476,7 +476,7 @@ class Optimiser(object):
         for i, front in enumerate(fronts):
             f.write("( # Front %d\n" % i)
             for ff in front:
-	        
+
                 #f.write("    (%s, %s),\n" % (ff.x[:], ff[:]))
                 f.write("    (%s, %s, %s, %s),\n" % (ff.x[:], ff[:], tuple(ff.unc[:]), tuple(ff.dev)))
                 print "\n\n\n!!!\n{0}\n!!!\n\n\n".format(ff.unc[:])
