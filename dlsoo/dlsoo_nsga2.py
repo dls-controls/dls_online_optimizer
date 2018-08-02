@@ -5,10 +5,10 @@ Version 3
 2016-08-01 15:00
 
 '''
-
-import random, sys
-import time
+import random
 import os
+import sys
+import time
 
 import Tkinter
 import ttk
