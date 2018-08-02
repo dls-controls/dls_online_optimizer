@@ -238,8 +238,6 @@ class MainWindow(Tkinter.Frame):
         self.btn_browse_save_address = Tkinter.Button(self.parent, text="Browse...", command=self.browse_save_location)
         self.btn_browse_save_address.grid(row=8, column=5, sticky=Tkinter.E+Tkinter.W)
 
-        #ttk.Separator(self.parent, orient='horizontal').grid(row=5, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
-
         #ALGORITHM CHOICE
         self.optimiserChoice = Tkinter.StringVar()
         Tkinter.Label(self.parent, text="Algorithm:").grid(row=9, column=0, sticky=Tkinter.E)
@@ -280,32 +278,23 @@ class MainWindow(Tkinter.Frame):
         self.add_lifetime.hide()
 
     def save_lifetime(self):
-        #with open("{}/lifetime_proxy_details.txt".format(self.parameters.save_location), "w") as f:
-                x0 = self.poly_entry_0.get()
-                x1 = self.poly_entry_1.get()
-                x2 = self.poly_entry_2.get()
-                x3 = self.poly_entry_3.get()
-                x4 = self.poly_entry_4.get()
-                x5 = self.poly_entry_5.get()
-                vert_beam_size = self.vert_beam_size_entry.get()
+        x0 = self.poly_entry_0.get()
+        x1 = self.poly_entry_1.get()
+        x2 = self.poly_entry_2.get()
+        x3 = self.poly_entry_3.get()
+        x4 = self.poly_entry_4.get()
+        x5 = self.poly_entry_5.get()
+        vert_beam_size = self.vert_beam_size_entry.get()
 
-                data = np.array([float(vert_beam_size), float(x0), float(x1), float(x2), float(x3), float(x4), float(x5)])
-                #np.savetxt('{}/lifetime_proxy_details'.format(self.parameters.save_location), data, delimiter = ",")
-                np.savetxt('./lifetime_proxy_details', data, delimiter = ",")
-
-                #f = file("{0}/lifetime_proxy_details.txt".format(self.parameters.save_location))
-                #f.write("Lifetime Proxy Calibration Settings \n")
-                #f.write("###################################\n\n")
-                #f.write("Vertical Beam Size:{}\n".format(vert_beam_size))
-                #f.write("calibration Curve: {0}  {1}  {2}  {3}  {4}".format(x0, x1, x2, x3, x4))
+        data = np.array([float(vert_beam_size), float(x0), float(x1), float(x2), float(x3), float(x4), float(x5)])
+        np.savetxt('./lifetime_proxy_details', data, delimiter = ",")
 
     def return_save_location(self):
         location = self.i_save_address.get()
         return location
 
     def read_lifetime_details(self):
-    #    if os.path.isfile("{}/lifetime_proxy_details".format(self.parameters.save_location)) == True:
-    #            defaults = np.loadtxt("{}/lifetime_proxy_details".format(self.parameters.save_location))
+
         if os.path.isfile("./lifetime_proxy_details") == True:
                 defaults = np.loadtxt("./lifetime_proxy_details")
 
