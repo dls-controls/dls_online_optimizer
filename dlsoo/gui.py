@@ -8,6 +8,7 @@ import Tkinter
 import ttk
 import tkFileDialog
 import tkMessageBox
+import numpy as np
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -186,43 +187,82 @@ class MainWindow(Tkinter.Frame):
         self.btn_output_params_rmv = Tkinter.Button(self.parent, text="Remove", command=self.remove_obj)
         self.btn_output_params_rmv.grid(row=1, column=6, rowspan=2, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=3, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+        #ADD LIFETIME PROXY CALIBRATION SETTINGS
+        self.poly_label_0 = Tkinter.Label(self.parent, text = "0")
+        self.poly_label_0.grid(row = 5, column = 2)
+        self.poly_label_1 = Tkinter.Label(self.parent, text = "1")
+        self.poly_label_1.grid(row = 5, column = 3)
+        self.poly_label_2 = Tkinter.Label(self.parent, text = "2")
+        self.poly_label_2.grid(row = 5, column = 4)
+        self.poly_label_3 = Tkinter.Label(self.parent, text = "3")
+        self.poly_label_3.grid(row = 5, column = 5)
+        self.poly_label_4 = Tkinter.Label(self.parent, text = "4")
+        self.poly_label_4.grid(row = 5, column = 6)
+        self.poly_label_5 = Tkinter.Label(self.parent, text = "5")
+        self.poly_label_5.grid(row = 5, column = 7)
 
-        #SAVE DIRECTORY
-        Tkinter.Label(self.parent, text="Save directory:").grid(row=4, column=0, sticky=Tkinter.E)
-        self.i_save_address = Tkinter.Entry(self.parent)
-        self.i_save_address.insert(0, self.parameters.save_location)
-        self.i_save_address.grid(row=4, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
-        self.btn_browse_save_address = Tkinter.Button(self.parent, text="Browse...", command=self.browse_save_location)
-        self.btn_browse_save_address.grid(row=4, column=5, sticky=Tkinter.E+Tkinter.W)
+        self.poly_entry_0 = Tkinter.Entry(self.parent)
+        self.poly_entry_0.grid(row = 6, column = 2)
+        self.poly_entry_1 = Tkinter.Entry(self.parent)
+        self.poly_entry_1.grid(row = 6, column = 3)
+        self.poly_entry_2 = Tkinter.Entry(self.parent)
+        self.poly_entry_2.grid(row = 6, column = 4)
+        self.poly_entry_3 = Tkinter.Entry(self.parent)
+        self.poly_entry_3.grid(row = 6, column = 5)
+        self.poly_entry_4 = Tkinter.Entry(self.parent)
+        self.poly_entry_4.grid(row = 6, column = 6)
+        self.poly_entry_5 = Tkinter.Entry(self.parent)
+        self.poly_entry_5.grid(row = 6, column = 7)
 
-        ttk.Separator(self.parent, orient='horizontal').grid(row=5, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
-        #ALGORITHM CHOICE
-        self.optimiserChoice = Tkinter.StringVar()
-        Tkinter.Label(self.parent, text="Algorithm:").grid(row=6, column=0, sticky=Tkinter.E)
-        self.algo = ttk.Combobox(self.parent, textvariable=self.optimiserChoice,
-                values=self.optimisers.keys(), state='readonly')
-        self.algo.current(0)
-        self.algo.grid(row=6, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+        self.poly_entry_description = Tkinter.Label(self.parent, text = "Lifetime polynomial coefficients:")
+        self.poly_entry_description.grid(row = 6, column = 1)
+
+        self.vert_beam_size = Tkinter.Label(self.parent, text = "Vertical Beam Size / micro m")
+        self.vert_beam_size.grid(row = 3, column = 3)
+        self.vert_beam_size_entry = Tkinter.Entry(self.parent)
+        self.vert_beam_size_entry.grid(row = 4, column = 3)
+        self.read_lifetime_details()
+        self.update_lifetime_settings = Tkinter.Button(self.master, text = "Update Lifetime Settings", command = self.save_lifetime)
+        self.update_lifetime_settings.grid(row = 4, column = 4)
+
+
 
         ttk.Separator(self.parent, orient='horizontal').grid(row=7, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
 
+        #SAVE DIRECTORY
+        Tkinter.Label(self.parent, text="Save directory:").grid(row=8, column=0, sticky=Tkinter.E)
+        self.i_save_address = Tkinter.Entry(self.parent)
+        self.i_save_address.insert(0, self.parameters.save_location)
+        self.i_save_address.grid(row=8, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+        self.btn_browse_save_address = Tkinter.Button(self.parent, text="Browse...", command=self.browse_save_location)
+        self.btn_browse_save_address.grid(row=8, column=5, sticky=Tkinter.E+Tkinter.W)
+
+        #ALGORITHM CHOICE
+        self.optimiserChoice = Tkinter.StringVar()
+        Tkinter.Label(self.parent, text="Algorithm:").grid(row=9, column=0, sticky=Tkinter.E)
+        self.algo = ttk.Combobox(self.parent, textvariable=self.optimiserChoice,
+                values=self.optimisers.keys(), state='readonly')
+        self.algo.current(0)
+        self.algo.grid(row=9, column=1, columnspan=4, sticky=Tkinter.E+Tkinter.W+Tkinter.N+Tkinter.S)
+
+        ttk.Separator(self.parent, orient='horizontal').grid(row=10, column=0, columnspan=7, sticky=Tkinter.E+Tkinter.W, padx=10, pady=10)
+
         #NEXT BUTTON
         self.btn_algo_settings = Tkinter.Button(self.parent, text="Next...", bg="red", command=self.next_button)
-        self.btn_algo_settings.grid(row=8, column=5, sticky=Tkinter.E+Tkinter.W)
+        self.btn_algo_settings.grid(row=11, column=5, sticky=Tkinter.E+Tkinter.W)
 
         #STRIPTOOL OPTION
         self.r0 = Tkinter.Radiobutton(self.parent, text="Striptool Off (Recommended)", variable=self.striptool_on, value=0)
-        self.r0.grid(row=8, column=4, sticky=Tkinter.E+Tkinter.W)
+        self.r0.grid(row=11, column=4, sticky=Tkinter.E+Tkinter.W)
         self.r1 = Tkinter.Radiobutton(self.parent, text="Striptool On", variable=self.striptool_on, value=1)
-        self.r1.grid(row=8, column=3, sticky=Tkinter.E+Tkinter.W)
+        self.r1.grid(row=11, column=3, sticky=Tkinter.E+Tkinter.W)
 
         #CONFIGURATION BUTTONS
         self.btn_load_config = Tkinter.Button(self.parent, text="Load configuration", command=self.load_config)
-        self.btn_load_config.grid(row=8, column=0, sticky=Tkinter.E+Tkinter.W)
+        self.btn_load_config.grid(row=11, column=0, sticky=Tkinter.E+Tkinter.W)
         self.btn_save_config = Tkinter.Button(self.parent, text="Save configuration", command=self.save_config)
-        self.btn_save_config.grid(row=8, column=1, sticky=Tkinter.E+Tkinter.W)
+        self.btn_save_config.grid(row=11, column=1, sticky=Tkinter.E+Tkinter.W)
 
         # The dialog for adding input parameters
         self.add_pv = AddPv(self, self.parameters)
@@ -236,6 +276,38 @@ class MainWindow(Tkinter.Frame):
         # The dialog for adding a lifetime proxy
         self.add_lifetime = AddLifetime(self)
         self.add_lifetime.hide()
+
+    def save_lifetime(self):
+        x0 = self.poly_entry_0.get()
+        x1 = self.poly_entry_1.get()
+        x2 = self.poly_entry_2.get()
+        x3 = self.poly_entry_3.get()
+        x4 = self.poly_entry_4.get()
+        x5 = self.poly_entry_5.get()
+        vert_beam_size = self.vert_beam_size_entry.get()
+
+        data = np.array([float(vert_beam_size), float(x0), float(x1), float(x2), float(x3), float(x4), float(x5)])
+        np.savetxt('./lifetime_proxy_details', data, delimiter = ",")
+
+    def return_save_location(self):
+        location = self.i_save_address.get()
+        return location
+
+    def read_lifetime_details(self):
+
+        if os.path.isfile("./lifetime_proxy_details") == True:
+                defaults = np.loadtxt("./lifetime_proxy_details")
+
+                self.vert_beam_size_entry.insert(0, defaults[0])
+                self.poly_entry_0.insert(0, defaults[1])
+                self.poly_entry_1.insert(0, defaults[2])
+                self.poly_entry_2.insert(0, defaults[3])
+                self.poly_entry_3.insert(0, defaults[4])
+                self.poly_entry_4.insert(0, defaults[5])
+        else:
+                pass
+
+
 
     def close(self):
         self.parent.destroy()
