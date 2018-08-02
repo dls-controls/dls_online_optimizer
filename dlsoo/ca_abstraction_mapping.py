@@ -42,4 +42,4 @@ def PMT_ref(x):  # MA 17/4/2018
     return PMT_ref
 
 
-name_to_function_mapping = {"lifetime_proxy" : lifetime_proxy}
+name_to_function_mapping = {"lifetime_proxy": lifetime_proxy}

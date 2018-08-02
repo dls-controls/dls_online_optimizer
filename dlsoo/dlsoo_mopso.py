@@ -287,7 +287,7 @@ class Optimiser(object):
 
         if density_sum == 0:
             inv_density = [1 for i in range(swarm_size)]
-        else :
+        else:
             inv_density = [density_sum-i for i in density]
 
         inv_density_size = sum(inv_density)

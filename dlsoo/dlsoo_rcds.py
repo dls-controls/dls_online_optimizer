@@ -295,7 +295,7 @@ class Optimiser(object):
         initialVec = [(self.initParams[i] - self.down[i])/(self.up[i] - self.down[i]) for i in range(self.paramCount)]
         for i in range(self.paramCount):
             ithRow = []
-            for j in range(i , -1, -1):
+            for j in range(i, -1, -1):
                 dir = createSearchDir(i, j, self.paramCount)
                 tests = []
                 alphas = []
@@ -579,7 +579,7 @@ class import_algo_final_plot(Tkinter.Frame):
         Tkinter.Frame.__init__(self, parent)
 
         self.parent = parent
-        self.signConverter = [1 , signConverter[0]]
+        self.signConverter = [1, signConverter[0]]
 
         self.pick_handler = pick_handler
         self.axis_labels = ['Number of directions searched', axis_labels[0]]

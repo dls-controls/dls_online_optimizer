@@ -577,8 +577,8 @@ class MainWindow(Tkinter.Frame):
 
         config_file = tkFileDialog.asksaveasfile()
         if config_file is not None:
-            config = {'parameters' : self.parameters.parameters,
-                      'results' : self.parameters.results}
+            config = {'parameters': self.parameters.parameters,
+                      'results': self.parameters.results}
 
             pickle.dump(config, config_file)
             config_file.close()
